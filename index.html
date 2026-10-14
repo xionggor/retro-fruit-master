@@ -1,0 +1,2919 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Retro Fruit Master — 老式街机水果机 (Xiao Ma Li)</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+/* Retro Fruit Master - Classic Arcade Fruit Machine (Xiao Ma Li) */
+:root {
+  --cabinet-red: #780606;
+  --cabinet-dark: #2a0000;
+  --cabinet-rim: #150000;
+  --gold-metal: #d4af37;
+  --gold-light: #f9e79f;
+  --gold-dark: #9a7d0a;
+  --led-red: #ff2222;
+  --led-dim: #2b0606;
+  --cell-bg: #fdf5e6;
+  --cell-border: #bfa15f;
+  --cell-active: #ffe600;
+  --btn-green: #2ecc71;
+  --btn-green-shadow: #1e8449;
+  --btn-yellow: #f1c40f;
+  --btn-yellow-shadow: #b7950b;
+  --btn-blue: #1abc9c;
+  --btn-blue-shadow: #117864;
+  --btn-red: #e74c3c;
+  --btn-red-shadow: #922b21;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: radial-gradient(circle at center, #1e0303 0%, #0a0000 100%);
+  color: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 8px;
+}
+
+/* Machine Chassis */
+.arcade-cabinet {
+  width: 100%;
+  max-width: 480px;
+  background: linear-gradient(180deg, #700606 0%, #3e0202 50%, #1e0000 100%);
+  border: 4px solid #140000;
+  border-radius: 20px;
+  box-shadow: 
+    0 12px 45px rgba(0, 0, 0, 0.95),
+    0 0 30px rgba(255, 34, 34, 0.35),
+    inset 0 3px 6px rgba(255, 255, 255, 0.3),
+    inset 0 -5px 12px rgba(0, 0, 0, 0.8);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top User Bar (Login / Daily Claim / Leaderboard) */
+.user-status-bar {
+  background: linear-gradient(180deg, #1f0101 0%, #2e0404 100%);
+  border-bottom: 2px solid #4a0808;
+  padding: 6px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+}
+
+.user-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #ffd32a;
+  cursor: pointer;
+  background: rgba(0,0,0,0.5);
+  padding: 3px 8px;
+  border-radius: 12px;
+  border: 1px solid #781010;
+  font-weight: bold;
+}
+.user-badge:hover {
+  border-color: #ffd32a;
+}
+
+.daily-claim-btn {
+  background: linear-gradient(180deg, #e67e22, #d35400);
+  color: #fff;
+  border: 1px solid #f39c12;
+  border-radius: 12px;
+  padding: 3px 9px;
+  font-size: 0.75rem;
+  font-weight: 900;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 0 8px rgba(230, 126, 34, 0.6);
+  animation: pulseClaim 1.8s infinite alternate;
+}
+.daily-claim-btn.claimed {
+  background: #333;
+  color: #888;
+  border-color: #555;
+  box-shadow: none;
+  animation: none;
+  cursor: default;
+}
+
+@keyframes pulseClaim {
+  0% { transform: scale(1); filter: brightness(1); }
+  100% { transform: scale(1.04); filter: brightness(1.2) drop-shadow(0 0 6px #f1c40f); }
+}
+
+.user-bar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.user-action-pill {
+  background: linear-gradient(180deg, #444, #1a1a1a);
+  border: 1px solid #666;
+  color: #eee;
+  border-radius: 10px;
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  cursor: pointer;
+  font-weight: bold;
+}
+.user-action-pill:active { transform: translateY(1px); }
+.user-action-pill.gold {
+  border-color: #f1c40f;
+  color: #f1c40f;
+}
+
+/* Top Grille */
+.cabinet-top-grille {
+  background: linear-gradient(180deg, #220000 0%, #440404 50%, #160000 100%);
+  border-bottom: 2px solid #550808;
+  padding: 5px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.top-speaker-lamp {
+  width: 50px;
+  height: 9px;
+  background: radial-gradient(circle, #ff3333 0%, #440000 80%);
+  border-radius: 6px;
+  border: 1px solid #770000;
+  box-shadow: 0 0 8px #ff2222;
+}
+
+.top-btn {
+  background: linear-gradient(180deg, #444, #111);
+  border: 1px solid #777;
+  color: #eee;
+  border-radius: 5px;
+  font-size: 0.78rem;
+  padding: 3px 7px;
+  cursor: pointer;
+}
+.top-btn.active {
+  color: #2ecc71;
+  border-color: #2ecc71;
+}
+
+/* Digital LED Meter Header */
+.led-header {
+  background: #0d0101;
+  border: 3px solid #2e0505;
+  margin: 5px 8px 3px 8px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 10px;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.9);
+}
+
+.led-meter-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 46%;
+}
+
+.led-meter-label {
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  color: #c97878;
+  margin-bottom: 2px;
+}
+
+.led-meter-screen {
+  background: #180202;
+  border: 2px solid #380808;
+  border-radius: 5px;
+  width: 100%;
+  padding: 2px 6px;
+  display: flex;
+  justify-content: flex-end;
+  position: relative;
+}
+
+.led-digits-ghost {
+  position: absolute;
+  right: 6px;
+  top: 2px;
+  font-family: 'Courier New', monospace;
+  font-size: 1.7rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: #310606;
+}
+
+.led-digits-real {
+  position: relative;
+  font-family: 'Courier New', monospace;
+  font-size: 1.7rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: var(--led-red);
+  text-shadow: 0 0 8px #ff2222, 0 0 14px #ff0000;
+  z-index: 2;
+}
+
+/* 24 Perimeter Lamp Stage */
+.perimeter-stage {
+  padding: 5px 8px;
+  position: relative;
+}
+
+.perimeter-frame {
+  background: #140303;
+  border: 4px solid var(--gold-metal);
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 
+    0 4px 12px rgba(0,0,0,0.8),
+    inset 0 0 15px rgba(0,0,0,0.9);
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(7, 1fr);
+  gap: 3px;
+  aspect-ratio: 1 / 1;
+  position: relative;
+}
+
+/* Individual 24 Lamp Tiles */
+.lamp-cell {
+  background: linear-gradient(135deg, #fff7e6 0%, #f4e3c3 100%);
+  border: 1.5px solid var(--cell-border);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.7), 0 1px 3px rgba(0,0,0,0.5);
+  transition: all 0.05s ease;
+  overflow: hidden;
+}
+
+.lamp-cell svg {
+  width: 65%;
+  height: 65%;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.4));
+}
+
+.lamp-cell .cell-subtag {
+  position: absolute;
+  bottom: 1px;
+  font-size: 0.55rem;
+  font-weight: 900;
+  color: #b00;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+
+/* Active Highlight Lamp */
+.lamp-cell.lit {
+  background: linear-gradient(135deg, #fff9a6 0%, #ffd000 100%) !important;
+  border-color: #fff !important;
+  box-shadow: 
+    0 0 15px #ffe600, 
+    0 0 25px #ff9900,
+    inset 0 0 6px #fff !important;
+  transform: scale(1.08);
+  z-index: 5;
+}
+
+/* Shooting Star / Comet Tail Effect (流星特效) */
+.lamp-cell.comet-head {
+  background: radial-gradient(circle, #ffffff 0%, #70a1ff 60%, #1e90ff 100%) !important;
+  border-color: #ffffff !important;
+  box-shadow: 
+    0 0 20px #00ffff,
+    0 0 35px #1e90ff,
+    0 0 50px #70a1ff,
+    inset 0 0 10px #ffffff !important;
+  transform: scale(1.15) !important;
+  z-index: 10 !important;
+  filter: brightness(1.6);
+}
+
+.lamp-cell.comet-tail-1 {
+  background: linear-gradient(135deg, #e0f8ff 0%, #70a1ff 100%) !important;
+  border-color: #00ffff !important;
+  box-shadow: 0 0 16px rgba(0, 255, 255, 0.85) !important;
+  opacity: 0.9 !important;
+  z-index: 9;
+}
+
+.lamp-cell.comet-tail-2 {
+  background: linear-gradient(135deg, #f0faff 0%, #a4b0be 100%) !important;
+  border-color: #70a1ff !important;
+  box-shadow: 0 0 12px rgba(112, 161, 255, 0.65) !important;
+  opacity: 0.75 !important;
+  z-index: 8;
+}
+
+.lamp-cell.comet-tail-3 {
+  background: #dfe4ea !important;
+  border-color: #747d8c !important;
+  box-shadow: 0 0 8px rgba(112, 161, 255, 0.45) !important;
+  opacity: 0.55 !important;
+  z-index: 7;
+}
+
+.lamp-cell.comet-tail-4 {
+  background: #f1f2f6 !important;
+  box-shadow: 0 0 5px rgba(112, 161, 255, 0.25) !important;
+  opacity: 0.35 !important;
+  z-index: 6;
+}
+
+.lamp-cell.win-flash {
+  animation: lampWinPulse 0.25s infinite alternate;
+}
+
+@keyframes lampWinPulse {
+  0% { transform: scale(1.05); filter: brightness(1.2); }
+  100% { transform: scale(1.15); filter: brightness(1.7) drop-shadow(0 0 12px #ff2222); }
+}
+
+/* Center Artwork Area */
+.center-artwork-area {
+  grid-column: 2 / 7;
+  grid-row: 2 / 7;
+  background: radial-gradient(circle at center, #2e1a47 0%, #150924 60%, #080310 100%);
+  border: 2px solid #5a3d7a;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  padding: 8px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
+}
+
+.center-moon-bg {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(195, 140, 255, 0.4) 0%, rgba(98, 42, 168, 0.1) 70%, transparent 100%);
+  top: 10px;
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.center-title-logo {
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-size: 1.35rem;
+  letter-spacing: 1.5px;
+  color: #f1c40f;
+  text-shadow: 
+    0 0 8px #f39c12, 
+    0 0 15px #e74c3c,
+    2px 2px 2px #000;
+  text-transform: uppercase;
+  z-index: 2;
+  text-align: center;
+}
+
+.center-jp-badge {
+  background: radial-gradient(circle, #e67e22 0%, #b33939 100%);
+  color: #fff;
+  border: 2px solid #f1c40f;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.85rem;
+  box-shadow: 0 0 8px #f1c40f;
+  z-index: 2;
+}
+
+.center-led-screen {
+  background: #110202;
+  border: 3px solid #3c1515;
+  border-radius: 6px;
+  padding: 2px 8px;
+  box-shadow: inset 0 0 8px rgba(0,0,0,0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 2;
+  min-width: 60px;
+}
+
+.center-led-digits {
+  font-family: 'Courier New', monospace;
+  font-size: 1.8rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: var(--led-red);
+  text-shadow: 0 0 8px #ff2222;
+  line-height: 1.1;
+}
+
+.center-status-msg {
+  font-size: 0.72rem;
+  color: #ffd32a;
+  text-align: center;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.65);
+  padding: 2px 8px;
+  border-radius: 4px;
+  max-width: 92%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Mid Control Bar */
+.mid-control-bar {
+  background: linear-gradient(180deg, #1f0404 0%, #110000 100%);
+  border-top: 2px solid #3d0707;
+  border-bottom: 2px solid #3d0707;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.btn-arcade-action {
+  border: none;
+  cursor: pointer;
+  font-weight: 900;
+  text-transform: uppercase;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 0 rgba(0,0,0,0.8), 0 5px 6px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.4);
+  transition: all 0.08s ease;
+}
+
+.btn-arcade-action:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.8), 0 2px 3px rgba(0,0,0,0.5);
+}
+
+.btn-arcade-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(0.7);
+}
+
+.btn-all-plus {
+  background: linear-gradient(180deg, #2ecc71, #27ae60);
+  color: #064019;
+  font-size: 0.75rem;
+  padding: 8px 10px;
+  border-radius: 20px;
+  border: 2px solid #a9dfbf;
+}
+
+.btn-nav-arrow {
+  background: linear-gradient(180deg, #1abc9c, #16a085);
+  color: #04382e;
+  font-size: 1rem;
+  width: 38px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid #a3e4d7;
+}
+
+.btn-gamble-round {
+  background: linear-gradient(180deg, #f1c40f, #d4ac0d);
+  color: #563d03;
+  font-size: 0.8rem;
+  width: 44px;
+  height: 36px;
+  border-radius: 18px;
+  border: 2px solid #fcf3cf;
+}
+
+.btn-go-spin {
+  background: linear-gradient(180deg, #e74c3c, #c0392b);
+  color: #fff;
+  font-size: 1.15rem;
+  font-family: 'Impact', sans-serif;
+  letter-spacing: 1px;
+  padding: 8px 22px;
+  border-radius: 8px;
+  border: 2px solid #f5b7b1;
+  box-shadow: 
+    0 5px 0 #78281f,
+    0 6px 10px rgba(0,0,0,0.6),
+    inset 0 1px 2px rgba(255,255,255,0.6);
+  flex-grow: 1;
+}
+
+/* Bottom Betting Console (8 Columns) */
+.betting-console {
+  background: linear-gradient(180deg, #0e120e 0%, #070907 100%);
+  border-top: 3px solid #232b23;
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.betting-grid-8 {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 4px;
+}
+
+.bet-mult-card {
+  border-radius: 4px;
+  padding: 3px 0;
+  text-align: center;
+  font-family: 'Impact', 'Arial Black', sans-serif;
+  font-size: 0.85rem;
+  color: #fff;
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.6);
+}
+
+.mult-gold { background: linear-gradient(180deg, #b7950b, #7d6608); border: 1px solid #f9e79f; }
+.mult-red { background: linear-gradient(180deg, #922b21, #641e16); border: 1px solid #f5b7b1; }
+.mult-orange { background: linear-gradient(180deg, #ba4a00, #7e3200); border: 1px solid #edbb99; }
+.mult-green { background: linear-gradient(180deg, #196f3d, #114b29); border: 1px solid #a9dfbf; }
+
+.bet-led-cell {
+  background: #140202;
+  border: 1.5px solid #360707;
+  border-radius: 4px;
+  text-align: center;
+  padding: 2px 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: var(--led-red);
+  text-shadow: 0 0 4px #ff2222;
+  min-height: 22px;
+}
+
+.bet-push-btn {
+  background: radial-gradient(circle at 35% 30%, #58d68d 0%, #229954 60%, #145a32 100%);
+  border: 2px solid #a9dfbf;
+  border-radius: 50%;
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 
+    0 4px 0 #0e3d22,
+    0 5px 6px rgba(0,0,0,0.6),
+    inset 0 1px 2px rgba(255,255,255,0.7);
+  transition: all 0.08s ease;
+  padding: 4px;
+}
+
+.bet-push-btn:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 #0e3d22, 0 2px 3px rgba(0,0,0,0.6);
+}
+
+.bet-push-btn:disabled {
+  filter: grayscale(0.8) opacity(0.5);
+  cursor: not-allowed;
+}
+
+.bet-push-btn svg {
+  width: 75%;
+  height: 75%;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,0.5));
+}
+
+/* Modals & Overlays */
+.modal-mask {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(3px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-mask.open {
+  display: flex;
+}
+.modal-card {
+  background: #1c0505;
+  border: 2px solid var(--gold-metal);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 16px;
+  color: #e5e7eb;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.9);
+}
+.modal-card h3 {
+  color: #f1c40f;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #4a1111;
+  padding-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-card p, .modal-card li {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin-bottom: 6px;
+}
+.modal-close-btn {
+  background: #c0392b;
+  color: #fff;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* Leaderboard (龙虎榜) Table */
+.rank-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  text-align: left;
+}
+.rank-table th {
+  color: #ffd32a;
+  border-bottom: 2px solid #5a1111;
+  padding: 6px 8px;
+  font-weight: bold;
+}
+.rank-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid #330b0b;
+}
+.rank-badge-1 { color: #f1c40f; font-weight: bold; font-size: 1rem; }
+.rank-badge-2 { color: #bdc3c7; font-weight: bold; font-size: 0.95rem; }
+.rank-badge-3 { color: #e67e22; font-weight: bold; font-size: 0.95rem; }
+.rank-self-row {
+  background: rgba(241, 196, 15, 0.15) !important;
+  color: #ffd32a;
+  font-weight: bold;
+}
+
+/* Auth Modal Forms */
+.auth-tabs {
+  display: flex;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #440d0d;
+}
+.auth-tab {
+  flex: 1;
+  text-align: center;
+  padding: 8px;
+  cursor: pointer;
+  color: #888;
+  font-weight: bold;
+}
+.auth-tab.active {
+  color: #ffd32a;
+  border-bottom: 2px solid #ffd32a;
+}
+.auth-form-group {
+  margin-bottom: 10px;
+}
+.auth-form-group label {
+  display: block;
+  font-size: 0.75rem;
+  color: #aaa;
+  margin-bottom: 4px;
+}
+.auth-input {
+  width: 100%;
+  background: #0f0202;
+  border: 1px solid #551111;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #fff;
+  font-size: 0.9rem;
+}
+.auth-input:focus {
+  outline: none;
+  border-color: #ffd32a;
+}
+.btn-auth-submit {
+  width: 100%;
+  background: linear-gradient(180deg, #e67e22, #b85c10);
+  border: none;
+  color: #fff;
+  font-weight: bold;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+/* Test Mode Panel */
+.test-panel {
+  display: none;
+  background: #2b0000;
+  border: 1px dashed #ff4757;
+  border-radius: 6px;
+  padding: 6px;
+  margin: 6px 8px;
+}
+.test-panel.show { display: block; }
+.test-panel-title {
+  font-size: 0.72rem;
+  color: #ff9f43;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.test-btns-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.test-act-btn {
+  background: #4a0d0d;
+  border: 1px solid #ff4757;
+  color: #ffd32a;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+
+#btnTest {
+  display: none;
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- Authentic Retro Arcade Machine Cabinet -->
+  <div class="arcade-cabinet" id="arcadeMachine">
+
+    <!-- Top User Bar: Account Info, Daily Claim & Leaderboard -->
+    <div class="user-status-bar">
+      <div class="user-badge" id="btnUserAuth" title="点击切换账号 / 注册登录">
+        <span>👤</span>
+        <span id="currentUsernameText">玩家一号</span>
+      </div>
+
+      <button class="daily-claim-btn" id="btnDailyClaim" title="每天登陆领取20块！">
+        🎁 签到 +20
+      </button>
+
+      <div class="user-bar-actions">
+        <button class="user-action-pill gold" id="btnLeaderboard" title="查看龙虎榜">
+          🏆 龙虎榜
+        </button>
+      </div>
+    </div>
+
+    <!-- Top Speaker Grille & Machine Action Buttons -->
+    <div class="cabinet-top-grille">
+      <button class="top-btn" id="btnRules" title="游戏规则">📜 规则</button>
+      <div class="top-speaker-lamp"></div>
+      <div style="display:flex; gap:6px;">
+        <button class="top-btn" id="btnSound" title="声音开关">🔊</button>
+        <button class="top-btn" id="btnHistory" title="历史记录">🕒</button>
+        <button class="top-btn" id="btnTest" title="调试模式" style="display:none;">🛠️ 调试</button>
+      </div>
+    </div>
+
+    <!-- Digital LED Meter Header (BONUS-WIN & CREDIT) -->
+    <div class="led-header">
+      <div class="led-meter-box">
+        <div class="led-meter-label">BONUS-WIN</div>
+        <div class="led-meter-screen">
+          <span class="led-digits-ghost">888888</span>
+          <span class="led-digits-real" id="displayBonusWin">000</span>
+        </div>
+      </div>
+      <div class="led-meter-box">
+        <div class="led-meter-label">CREDIT</div>
+        <div class="led-meter-screen">
+          <span class="led-digits-ghost">888888</span>
+          <span class="led-digits-real" id="displayCredit">100</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 24 Perimeter Lamp Playing Field (7x7 Outer Matrix) -->
+    <div class="perimeter-stage">
+      <div class="perimeter-frame">
+
+        <!-- The 24 Peripheral Lamp Cells -->
+
+        <div class="lamp-cell" id="lampCell_0" style="grid-row:1; grid-column:1;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="orangeGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffeaa7"/>
+      <stop offset="35%" stop-color="#e67e22"/>
+      <stop offset="100%" stop-color="#b33939"/>
+    </radialGradient>
+  </defs>
+  <path d="M 50 14 L 50 24" stroke="#795548" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 50 18 C 65 8, 75 14, 68 24 C 60 24, 54 20, 50 18 Z" fill="#2ecc71"/>
+  <circle cx="50" cy="56" r="34" fill="url(#orangeGrad)" stroke="#d35400" stroke-width="2"/>
+  <ellipse cx="38" cy="44" rx="10" ry="5" fill="#ffffff" opacity="0.45" transform="rotate(-30 38 44)"/>
+</svg>
+          <span class="cell-subtag">x10</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_1" style="grid-row:1; grid-column:2;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bellGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff8b5"/>
+      <stop offset="35%" stop-color="#f1c40f"/>
+      <stop offset="80%" stop-color="#e67e22"/>
+      <stop offset="100%" stop-color="#a04000"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="18" r="8" fill="none" stroke="url(#bellGrad)" stroke-width="5"/>
+  <path d="M 50 25 C 38 25, 34 40, 32 58 C 30 70, 16 74, 16 78 C 16 82, 28 84, 50 84 C 72 84, 84 82, 84 78 C 84 74, 70 70, 68 58 C 66 40, 62 25, 50 25 Z" fill="url(#bellGrad)" stroke="#b7791f" stroke-width="2"/>
+  <ellipse cx="50" cy="80" rx="30" ry="4" fill="#ffffff" opacity="0.4"/>
+  <circle cx="50" cy="86" r="7" fill="#784212" stroke="#f1c40f" stroke-width="2"/>
+</svg>
+          <span class="cell-subtag">x20</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_2" style="grid-row:1; grid-column:3;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <rect x="5" y="20" width="90" height="60" rx="8" fill="#1e3799" stroke="#fed330" stroke-width="4"/>
+  <rect x="10" y="25" width="80" height="50" rx="5" fill="#0c2461"/>
+  <text x="50" y="60" font-family="'Impact', Arial Black, sans-serif" font-size="34" font-weight="900" text-anchor="middle" fill="#ffffff" stroke="#f6b93b" stroke-width="1.5" letter-spacing="3">BAR</text>
+</svg>
+          <span class="cell-subtag">x50</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_3" style="grid-row:1; grid-column:4;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <rect x="5" y="20" width="90" height="60" rx="8" fill="#1e3799" stroke="#fed330" stroke-width="4"/>
+  <rect x="10" y="25" width="80" height="50" rx="5" fill="#0c2461"/>
+  <text x="50" y="60" font-family="'Impact', Arial Black, sans-serif" font-size="34" font-weight="900" text-anchor="middle" fill="#ffffff" stroke="#f6b93b" stroke-width="1.5" letter-spacing="3">BAR</text>
+</svg>
+          <span class="cell-subtag">x120</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_4" style="grid-row:1; grid-column:5;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <rect x="5" y="20" width="90" height="60" rx="8" fill="#1e3799" stroke="#fed330" stroke-width="4"/>
+  <rect x="10" y="25" width="80" height="50" rx="5" fill="#0c2461"/>
+  <text x="50" y="60" font-family="'Impact', Arial Black, sans-serif" font-size="34" font-weight="900" text-anchor="middle" fill="#ffffff" stroke="#f6b93b" stroke-width="1.5" letter-spacing="3">BAR</text>
+</svg>
+          <span class="cell-subtag">x25</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_5" style="grid-row:1; grid-column:6;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="appleGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ff7675"/>
+      <stop offset="40%" stop-color="#d63031"/>
+      <stop offset="85%" stop-color="#b71540"/>
+      <stop offset="100%" stop-color="#4a0000"/>
+    </radialGradient>
+  </defs>
+  <path d="M 50 14 C 48 24, 46 28, 44 34" stroke="#5d4037" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 46 20 C 60 12, 70 18, 64 26 C 55 26, 48 23, 46 20 Z" fill="#2ecc71"/>
+  <path d="M 50 36 C 36 34, 18 45, 18 64 C 18 84, 38 90, 50 86 C 62 90, 82 84, 82 64 C 82 45, 64 34, 50 36 Z" fill="url(#appleGrad)" stroke="#900" stroke-width="2"/>
+  <ellipse cx="34" cy="52" rx="8" ry="5" fill="#fff" opacity="0.45" transform="rotate(-30 34 52)"/>
+</svg>
+          <span class="cell-subtag">x5</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_6" style="grid-row:1; grid-column:7;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="plumGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#e056fd"/>
+      <stop offset="45%" stop-color="#be2edd"/>
+      <stop offset="85%" stop-color="#4834d4"/>
+      <stop offset="100%" stop-color="#130f40"/>
+    </radialGradient>
+  </defs>
+  <!-- Stem & Leaf -->
+  <path d="M 50 16 C 50 24, 46 30, 44 36" stroke="#6ab04c" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 46 22 C 60 14, 70 20, 64 28 C 55 28, 48 25, 46 22 Z" fill="#6ab04c"/>
+  <!-- Plum Fruit -->
+  <path d="M 50 36 C 30 36, 18 52, 22 72 C 26 88, 44 90, 50 90 C 56 90, 74 88, 78 72 C 82 52, 70 36, 50 36 Z" fill="url(#plumGrad)" stroke="#4834d4" stroke-width="2"/>
+  <ellipse cx="38" cy="54" rx="10" ry="6" fill="#fff" opacity="0.4" transform="rotate(-30 38 54)"/>
+</svg>
+          <span class="cell-subtag">x15</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_7" style="grid-row:2; grid-column:7;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="melonGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ff7675"/>
+      <stop offset="60%" stop-color="#d63031"/>
+      <stop offset="100%" stop-color="#800000"/>
+    </radialGradient>
+  </defs>
+  <path d="M 10 42 C 16 86, 84 86, 90 42 Z" fill="#2ecc71" stroke="#27ae60" stroke-width="3"/>
+  <path d="M 14 43 C 19 82, 81 82, 86 43 Z" fill="#fff"/>
+  <path d="M 17 44 C 22 78, 78 78, 83 44 Z" fill="url(#melonGrad)"/>
+  <circle cx="34" cy="54" r="2.8" fill="#111"/>
+  <circle cx="50" cy="58" r="2.8" fill="#111"/>
+  <circle cx="66" cy="54" r="2.8" fill="#111"/>
+  <circle cx="42" cy="66" r="2.5" fill="#111"/>
+  <circle cx="58" cy="66" r="2.5" fill="#111"/>
+</svg>
+          <span class="cell-subtag">x20</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_8" style="grid-row:3; grid-column:7;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="melonGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ff7675"/>
+      <stop offset="60%" stop-color="#d63031"/>
+      <stop offset="100%" stop-color="#800000"/>
+    </radialGradient>
+  </defs>
+  <path d="M 10 42 C 16 86, 84 86, 90 42 Z" fill="#2ecc71" stroke="#27ae60" stroke-width="3"/>
+  <path d="M 14 43 C 19 82, 81 82, 86 43 Z" fill="#fff"/>
+  <path d="M 17 44 C 22 78, 78 78, 83 44 Z" fill="url(#melonGrad)"/>
+  <circle cx="34" cy="54" r="2.8" fill="#111"/>
+  <circle cx="50" cy="58" r="2.8" fill="#111"/>
+  <circle cx="66" cy="54" r="2.8" fill="#111"/>
+  <circle cx="42" cy="66" r="2.5" fill="#111"/>
+  <circle cx="58" cy="66" r="2.5" fill="#111"/>
+</svg>
+          <span class="cell-subtag">x3</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_9" style="grid-row:4; grid-column:7;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="specGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff9ff3"/>
+      <stop offset="50%" stop-color="#feca57"/>
+      <stop offset="100%" stop-color="#ff6b6b"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="80" height="80" rx="12" fill="url(#specGrad)" stroke="#fff" stroke-width="3"/>
+  <polygon points="50,16 60,38 84,40 66,56 72,80 50,66 28,80 34,56 16,40 40,38" fill="#ff4757" stroke="#fff" stroke-width="2"/>
+  <text x="50" y="62" font-family="'Impact', Arial Black, sans-serif" font-size="20" font-weight="900" text-anchor="middle" fill="#fff" stroke="#670000" stroke-width="1">BONUS</text>
+</svg>
+          <span class="cell-subtag">单星</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_10" style="grid-row:5; grid-column:7;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="appleGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ff7675"/>
+      <stop offset="40%" stop-color="#d63031"/>
+      <stop offset="85%" stop-color="#b71540"/>
+      <stop offset="100%" stop-color="#4a0000"/>
+    </radialGradient>
+  </defs>
+  <path d="M 50 14 C 48 24, 46 28, 44 34" stroke="#5d4037" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 46 20 C 60 12, 70 18, 64 26 C 55 26, 48 23, 46 20 Z" fill="#2ecc71"/>
+  <path d="M 50 36 C 36 34, 18 45, 18 64 C 18 84, 38 90, 50 86 C 62 90, 82 84, 82 64 C 82 45, 64 34, 50 36 Z" fill="url(#appleGrad)" stroke="#900" stroke-width="2"/>
+  <ellipse cx="34" cy="52" rx="8" ry="5" fill="#fff" opacity="0.45" transform="rotate(-30 34 52)"/>
+</svg>
+          <span class="cell-subtag">x5</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_11" style="grid-row:6; grid-column:7;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="orangeGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffeaa7"/>
+      <stop offset="35%" stop-color="#e67e22"/>
+      <stop offset="100%" stop-color="#b33939"/>
+    </radialGradient>
+  </defs>
+  <path d="M 50 14 L 50 24" stroke="#795548" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 50 18 C 65 8, 75 14, 68 24 C 60 24, 54 20, 50 18 Z" fill="#2ecc71"/>
+  <circle cx="50" cy="56" r="34" fill="url(#orangeGrad)" stroke="#d35400" stroke-width="2"/>
+  <ellipse cx="38" cy="44" rx="10" ry="5" fill="#ffffff" opacity="0.45" transform="rotate(-30 38 44)"/>
+</svg>
+          <span class="cell-subtag">x3</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_12" style="grid-row:7; grid-column:7;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="orangeGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffeaa7"/>
+      <stop offset="35%" stop-color="#e67e22"/>
+      <stop offset="100%" stop-color="#b33939"/>
+    </radialGradient>
+  </defs>
+  <path d="M 50 14 L 50 24" stroke="#795548" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 50 18 C 65 8, 75 14, 68 24 C 60 24, 54 20, 50 18 Z" fill="#2ecc71"/>
+  <circle cx="50" cy="56" r="34" fill="url(#orangeGrad)" stroke="#d35400" stroke-width="2"/>
+  <ellipse cx="38" cy="44" rx="10" ry="5" fill="#ffffff" opacity="0.45" transform="rotate(-30 38 44)"/>
+</svg>
+          <span class="cell-subtag">x10</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_13" style="grid-row:7; grid-column:6;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bellGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff8b5"/>
+      <stop offset="35%" stop-color="#f1c40f"/>
+      <stop offset="80%" stop-color="#e67e22"/>
+      <stop offset="100%" stop-color="#a04000"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="18" r="8" fill="none" stroke="url(#bellGrad)" stroke-width="5"/>
+  <path d="M 50 25 C 38 25, 34 40, 32 58 C 30 70, 16 74, 16 78 C 16 82, 28 84, 50 84 C 72 84, 84 82, 84 78 C 84 74, 70 70, 68 58 C 66 40, 62 25, 50 25 Z" fill="url(#bellGrad)" stroke="#b7791f" stroke-width="2"/>
+  <ellipse cx="50" cy="80" rx="30" ry="4" fill="#ffffff" opacity="0.4"/>
+  <circle cx="50" cy="86" r="7" fill="#784212" stroke="#f1c40f" stroke-width="2"/>
+</svg>
+          <span class="cell-subtag">x20</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_14" style="grid-row:7; grid-column:5;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad7" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff"/>
+      <stop offset="25%" stop-color="#ff4757"/>
+      <stop offset="60%" stop-color="#e84118"/>
+      <stop offset="100%" stop-color="#c23616"/>
+    </linearGradient>
+  </defs>
+  <path d="M 18 18 L 82 18 L 48 85 L 34 85 L 62 34 L 18 34 Z" fill="url(#grad7)" stroke="#ffeaa7" stroke-width="3"/>
+  <path d="M 32 30 L 78 30 L 46 82 L 40 82 L 66 38 L 32 38 Z" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.6"/>
+</svg>
+          <span class="cell-subtag">x3</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_15" style="grid-row:7; grid-column:4;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad7" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff"/>
+      <stop offset="25%" stop-color="#ff4757"/>
+      <stop offset="60%" stop-color="#e84118"/>
+      <stop offset="100%" stop-color="#c23616"/>
+    </linearGradient>
+  </defs>
+  <path d="M 18 18 L 82 18 L 48 85 L 34 85 L 62 34 L 18 34 Z" fill="url(#grad7)" stroke="#ffeaa7" stroke-width="3"/>
+  <path d="M 32 30 L 78 30 L 46 82 L 40 82 L 66 38 L 32 38 Z" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.6"/>
+</svg>
+          <span class="cell-subtag">x40</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_16" style="grid-row:7; grid-column:3;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="appleGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ff7675"/>
+      <stop offset="40%" stop-color="#d63031"/>
+      <stop offset="85%" stop-color="#b71540"/>
+      <stop offset="100%" stop-color="#4a0000"/>
+    </radialGradient>
+  </defs>
+  <path d="M 50 14 C 48 24, 46 28, 44 34" stroke="#5d4037" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 46 20 C 60 12, 70 18, 64 26 C 55 26, 48 23, 46 20 Z" fill="#2ecc71"/>
+  <path d="M 50 36 C 36 34, 18 45, 18 64 C 18 84, 38 90, 50 86 C 62 90, 82 84, 82 64 C 82 45, 64 34, 50 36 Z" fill="url(#appleGrad)" stroke="#900" stroke-width="2"/>
+  <ellipse cx="34" cy="52" rx="8" ry="5" fill="#fff" opacity="0.45" transform="rotate(-30 34 52)"/>
+</svg>
+          <span class="cell-subtag">x5</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_17" style="grid-row:7; grid-column:2;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="plumGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#e056fd"/>
+      <stop offset="45%" stop-color="#be2edd"/>
+      <stop offset="85%" stop-color="#4834d4"/>
+      <stop offset="100%" stop-color="#130f40"/>
+    </radialGradient>
+  </defs>
+  <!-- Stem & Leaf -->
+  <path d="M 50 16 C 50 24, 46 30, 44 36" stroke="#6ab04c" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 46 22 C 60 14, 70 20, 64 28 C 55 28, 48 25, 46 22 Z" fill="#6ab04c"/>
+  <!-- Plum Fruit -->
+  <path d="M 50 36 C 30 36, 18 52, 22 72 C 26 88, 44 90, 50 90 C 56 90, 74 88, 78 72 C 82 52, 70 36, 50 36 Z" fill="url(#plumGrad)" stroke="#4834d4" stroke-width="2"/>
+  <ellipse cx="38" cy="54" rx="10" ry="6" fill="#fff" opacity="0.4" transform="rotate(-30 38 54)"/>
+</svg>
+          <span class="cell-subtag">x3</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_18" style="grid-row:7; grid-column:1;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="plumGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#e056fd"/>
+      <stop offset="45%" stop-color="#be2edd"/>
+      <stop offset="85%" stop-color="#4834d4"/>
+      <stop offset="100%" stop-color="#130f40"/>
+    </radialGradient>
+  </defs>
+  <!-- Stem & Leaf -->
+  <path d="M 50 16 C 50 24, 46 30, 44 36" stroke="#6ab04c" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 46 22 C 60 14, 70 20, 64 28 C 55 28, 48 25, 46 22 Z" fill="#6ab04c"/>
+  <!-- Plum Fruit -->
+  <path d="M 50 36 C 30 36, 18 52, 22 72 C 26 88, 44 90, 50 90 C 56 90, 74 88, 78 72 C 82 52, 70 36, 50 36 Z" fill="url(#plumGrad)" stroke="#4834d4" stroke-width="2"/>
+  <ellipse cx="38" cy="54" rx="10" ry="6" fill="#fff" opacity="0.4" transform="rotate(-30 38 54)"/>
+</svg>
+          <span class="cell-subtag">x15</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_19" style="grid-row:6; grid-column:1;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff9d2"/>
+      <stop offset="40%" stop-color="#f1c40f"/>
+      <stop offset="100%" stop-color="#d35400"/>
+    </linearGradient>
+  </defs>
+  <!-- Left Star -->
+  <polygon points="34,16 41,31 57,33 45,44 48,60 34,51 20,60 23,44 11,33 27,31" fill="url(#starGrad)" stroke="#b7791f" stroke-width="2"/>
+  <!-- Right Star -->
+  <polygon points="66,36 73,51 89,53 77,64 80,80 66,71 52,80 55,64 43,53 59,51" fill="url(#starGrad)" stroke="#b7791f" stroke-width="2"/>
+</svg>
+          <span class="cell-subtag">x30</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_20" style="grid-row:5; grid-column:1;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff9d2"/>
+      <stop offset="40%" stop-color="#f1c40f"/>
+      <stop offset="100%" stop-color="#d35400"/>
+    </linearGradient>
+  </defs>
+  <!-- Left Star -->
+  <polygon points="34,16 41,31 57,33 45,44 48,60 34,51 20,60 23,44 11,33 27,31" fill="url(#starGrad)" stroke="#b7791f" stroke-width="2"/>
+  <!-- Right Star -->
+  <polygon points="66,36 73,51 89,53 77,64 80,80 66,71 52,80 55,64 43,53 59,51" fill="url(#starGrad)" stroke="#b7791f" stroke-width="2"/>
+</svg>
+          <span class="cell-subtag">x3</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_21" style="grid-row:4; grid-column:1;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="specGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ff9ff3"/>
+      <stop offset="50%" stop-color="#feca57"/>
+      <stop offset="100%" stop-color="#ff6b6b"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="80" height="80" rx="12" fill="url(#specGrad)" stroke="#fff" stroke-width="3"/>
+  <polygon points="50,16 60,38 84,40 66,56 72,80 50,66 28,80 34,56 16,40 40,38" fill="#ff4757" stroke="#fff" stroke-width="2"/>
+  <text x="50" y="62" font-family="'Impact', Arial Black, sans-serif" font-size="20" font-weight="900" text-anchor="middle" fill="#fff" stroke="#670000" stroke-width="1">BONUS</text>
+</svg>
+          <span class="cell-subtag">三星</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_22" style="grid-row:3; grid-column:1;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="appleGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ff7675"/>
+      <stop offset="40%" stop-color="#d63031"/>
+      <stop offset="85%" stop-color="#b71540"/>
+      <stop offset="100%" stop-color="#4a0000"/>
+    </radialGradient>
+  </defs>
+  <path d="M 50 14 C 48 24, 46 28, 44 34" stroke="#5d4037" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 46 20 C 60 12, 70 18, 64 26 C 55 26, 48 23, 46 20 Z" fill="#2ecc71"/>
+  <path d="M 50 36 C 36 34, 18 45, 18 64 C 18 84, 38 90, 50 86 C 62 90, 82 84, 82 64 C 82 45, 64 34, 50 36 Z" fill="url(#appleGrad)" stroke="#900" stroke-width="2"/>
+  <ellipse cx="34" cy="52" rx="8" ry="5" fill="#fff" opacity="0.45" transform="rotate(-30 34 52)"/>
+</svg>
+          <span class="cell-subtag">x5</span>
+        </div>
+        <div class="lamp-cell" id="lampCell_23" style="grid-row:2; grid-column:1;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bellGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff8b5"/>
+      <stop offset="35%" stop-color="#f1c40f"/>
+      <stop offset="80%" stop-color="#e67e22"/>
+      <stop offset="100%" stop-color="#a04000"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="18" r="8" fill="none" stroke="url(#bellGrad)" stroke-width="5"/>
+  <path d="M 50 25 C 38 25, 34 40, 32 58 C 30 70, 16 74, 16 78 C 16 82, 28 84, 50 84 C 72 84, 84 82, 84 78 C 84 74, 70 70, 68 58 C 66 40, 62 25, 50 25 Z" fill="url(#bellGrad)" stroke="#b7791f" stroke-width="2"/>
+  <ellipse cx="50" cy="80" rx="30" ry="4" fill="#ffffff" opacity="0.4"/>
+  <circle cx="50" cy="86" r="7" fill="#784212" stroke="#f1c40f" stroke-width="2"/>
+</svg>
+          <span class="cell-subtag">x3</span>
+        </div>
+
+        <!-- Center 5x5 Artwork & LED Display Screen -->
+        <div class="center-artwork-area">
+          <div class="center-moon-bg"></div>
+          
+          <div class="center-title-logo">
+            RETRO FRUIT<br><span style="font-size:1.1rem; color:#fff;">MASTER</span>
+          </div>
+
+          <div class="center-jp-badge">JP</div>
+
+          <div class="center-led-screen">
+            <span class="center-led-digits" id="centerDigits">00</span>
+          </div>
+
+          <div class="center-status-msg" id="centerStatusMsg">
+            请下注后按 GO 开始！
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Middle Tactile Action Buttons Bar -->
+    <div class="mid-control-bar">
+      <button class="btn-arcade-action btn-all-plus" id="btnAllPlus" title="全部门类 +1">
+        ALL +1
+      </button>
+
+      <button class="btn-arcade-action btn-nav-arrow" id="btnClear" title="清空所有下注">
+        ◀
+      </button>
+
+      <button class="btn-arcade-action btn-nav-arrow" id="btnMax" title="均分最大下注">
+        ▶
+      </button>
+
+      <button class="btn-arcade-action btn-gamble-round" id="btnGambleSmall" title="猜小 (1-6)" disabled>
+        1-6
+      </button>
+
+      <button class="btn-arcade-action btn-gamble-round" id="btnGambleBig" title="猜大 (8-13)" disabled>
+        8-13
+      </button>
+
+      <button class="btn-arcade-action btn-go-spin" id="btnGo" title="开始跑灯 / 领取奖励">
+        GO
+      </button>
+    </div>
+
+    <!-- Bottom Betting Console (8 Multipliers, LED & Push Buttons) -->
+    <div class="betting-console">
+      <div class="betting-grid-8">
+
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <div class="bet-mult-card mult-gold">120</div>
+          <div class="bet-led-cell" id="betLed_bar">00</div>
+          <button class="bet-push-btn" id="betBtn_bar" title="下注 BAR">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <rect x="5" y="20" width="90" height="60" rx="8" fill="#1e3799" stroke="#fed330" stroke-width="4"/>
+  <rect x="10" y="25" width="80" height="50" rx="5" fill="#0c2461"/>
+  <text x="50" y="60" font-family="'Impact', Arial Black, sans-serif" font-size="34" font-weight="900" text-anchor="middle" fill="#ffffff" stroke="#f6b93b" stroke-width="1.5" letter-spacing="3">BAR</text>
+</svg>
+          </button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <div class="bet-mult-card mult-red">40</div>
+          <div class="bet-led-cell" id="betLed_seven">00</div>
+          <button class="bet-push-btn" id="betBtn_seven" title="下注 77">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad7" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff"/>
+      <stop offset="25%" stop-color="#ff4757"/>
+      <stop offset="60%" stop-color="#e84118"/>
+      <stop offset="100%" stop-color="#c23616"/>
+    </linearGradient>
+  </defs>
+  <path d="M 18 18 L 82 18 L 48 85 L 34 85 L 62 34 L 18 34 Z" fill="url(#grad7)" stroke="#ffeaa7" stroke-width="3"/>
+  <path d="M 32 30 L 78 30 L 46 82 L 40 82 L 66 38 L 32 38 Z" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.6"/>
+</svg>
+          </button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <div class="bet-mult-card mult-orange">30</div>
+          <div class="bet-led-cell" id="betLed_star">00</div>
+          <button class="bet-push-btn" id="betBtn_star" title="下注 ★★">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff9d2"/>
+      <stop offset="40%" stop-color="#f1c40f"/>
+      <stop offset="100%" stop-color="#d35400"/>
+    </linearGradient>
+  </defs>
+  <!-- Left Star -->
+  <polygon points="34,16 41,31 57,33 45,44 48,60 34,51 20,60 23,44 11,33 27,31" fill="url(#starGrad)" stroke="#b7791f" stroke-width="2"/>
+  <!-- Right Star -->
+  <polygon points="66,36 73,51 89,53 77,64 80,80 66,71 52,80 55,64 43,53 59,51" fill="url(#starGrad)" stroke="#b7791f" stroke-width="2"/>
+</svg>
+          </button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <div class="bet-mult-card mult-green">20</div>
+          <div class="bet-led-cell" id="betLed_watermelon">00</div>
+          <button class="bet-push-btn" id="betBtn_watermelon" title="下注 西瓜">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="melonGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ff7675"/>
+      <stop offset="60%" stop-color="#d63031"/>
+      <stop offset="100%" stop-color="#800000"/>
+    </radialGradient>
+  </defs>
+  <path d="M 10 42 C 16 86, 84 86, 90 42 Z" fill="#2ecc71" stroke="#27ae60" stroke-width="3"/>
+  <path d="M 14 43 C 19 82, 81 82, 86 43 Z" fill="#fff"/>
+  <path d="M 17 44 C 22 78, 78 78, 83 44 Z" fill="url(#melonGrad)"/>
+  <circle cx="34" cy="54" r="2.8" fill="#111"/>
+  <circle cx="50" cy="58" r="2.8" fill="#111"/>
+  <circle cx="66" cy="54" r="2.8" fill="#111"/>
+  <circle cx="42" cy="66" r="2.5" fill="#111"/>
+  <circle cx="58" cy="66" r="2.5" fill="#111"/>
+</svg>
+          </button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <div class="bet-mult-card mult-gold">20</div>
+          <div class="bet-led-cell" id="betLed_bell">00</div>
+          <button class="bet-push-btn" id="betBtn_bell" title="下注 铃铛">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bellGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff8b5"/>
+      <stop offset="35%" stop-color="#f1c40f"/>
+      <stop offset="80%" stop-color="#e67e22"/>
+      <stop offset="100%" stop-color="#a04000"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="18" r="8" fill="none" stroke="url(#bellGrad)" stroke-width="5"/>
+  <path d="M 50 25 C 38 25, 34 40, 32 58 C 30 70, 16 74, 16 78 C 16 82, 28 84, 50 84 C 72 84, 84 82, 84 78 C 84 74, 70 70, 68 58 C 66 40, 62 25, 50 25 Z" fill="url(#bellGrad)" stroke="#b7791f" stroke-width="2"/>
+  <ellipse cx="50" cy="80" rx="30" ry="4" fill="#ffffff" opacity="0.4"/>
+  <circle cx="50" cy="86" r="7" fill="#784212" stroke="#f1c40f" stroke-width="2"/>
+</svg>
+          </button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <div class="bet-mult-card mult-red">15</div>
+          <div class="bet-led-cell" id="betLed_plum">00</div>
+          <button class="bet-push-btn" id="betBtn_plum" title="下注 葡萄">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="plumGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#e056fd"/>
+      <stop offset="45%" stop-color="#be2edd"/>
+      <stop offset="85%" stop-color="#4834d4"/>
+      <stop offset="100%" stop-color="#130f40"/>
+    </radialGradient>
+  </defs>
+  <!-- Stem & Leaf -->
+  <path d="M 50 16 C 50 24, 46 30, 44 36" stroke="#6ab04c" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 46 22 C 60 14, 70 20, 64 28 C 55 28, 48 25, 46 22 Z" fill="#6ab04c"/>
+  <!-- Plum Fruit -->
+  <path d="M 50 36 C 30 36, 18 52, 22 72 C 26 88, 44 90, 50 90 C 56 90, 74 88, 78 72 C 82 52, 70 36, 50 36 Z" fill="url(#plumGrad)" stroke="#4834d4" stroke-width="2"/>
+  <ellipse cx="38" cy="54" rx="10" ry="6" fill="#fff" opacity="0.4" transform="rotate(-30 38 54)"/>
+</svg>
+          </button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <div class="bet-mult-card mult-orange">10</div>
+          <div class="bet-led-cell" id="betLed_orange">00</div>
+          <button class="bet-push-btn" id="betBtn_orange" title="下注 橙子">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="orangeGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ffeaa7"/>
+      <stop offset="35%" stop-color="#e67e22"/>
+      <stop offset="100%" stop-color="#b33939"/>
+    </radialGradient>
+  </defs>
+  <path d="M 50 14 L 50 24" stroke="#795548" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 50 18 C 65 8, 75 14, 68 24 C 60 24, 54 20, 50 18 Z" fill="#2ecc71"/>
+  <circle cx="50" cy="56" r="34" fill="url(#orangeGrad)" stroke="#d35400" stroke-width="2"/>
+  <ellipse cx="38" cy="44" rx="10" ry="5" fill="#ffffff" opacity="0.45" transform="rotate(-30 38 44)"/>
+</svg>
+          </button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:3px;">
+          <div class="bet-mult-card mult-green">5</div>
+          <div class="bet-led-cell" id="betLed_apple">00</div>
+          <button class="bet-push-btn" id="betBtn_apple" title="下注 苹果">
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="appleGrad" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#ff7675"/>
+      <stop offset="40%" stop-color="#d63031"/>
+      <stop offset="85%" stop-color="#b71540"/>
+      <stop offset="100%" stop-color="#4a0000"/>
+    </radialGradient>
+  </defs>
+  <path d="M 50 14 C 48 24, 46 28, 44 34" stroke="#5d4037" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 46 20 C 60 12, 70 18, 64 26 C 55 26, 48 23, 46 20 Z" fill="#2ecc71"/>
+  <path d="M 50 36 C 36 34, 18 45, 18 64 C 18 84, 38 90, 50 86 C 62 90, 82 84, 82 64 C 82 45, 64 34, 50 36 Z" fill="url(#appleGrad)" stroke="#900" stroke-width="2"/>
+  <ellipse cx="34" cy="52" rx="8" ry="5" fill="#fff" opacity="0.45" transform="rotate(-30 34 52)"/>
+</svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Test Mode Panel (Hidden by default, toggled via top 🛠️ button) -->
+    <div class="test-panel" id="testPanel">
+      <div class="test-panel-title">🛠️ 调试测试模式 (TEST MODE) — 结果强制注入:</div>
+      <div class="test-btns-row">
+        <button class="test-act-btn" id="testBar120">必中 BAR(120x)</button>
+        <button class="test-act-btn" id="testSeven40">必中 77(40x)</button>
+        <button class="test-act-btn" id="testTrainSingle">💫 必中单星(中1格)</button>
+        <button class="test-act-btn" id="testTrainTriple">🌠 必中三星(中3格)</button>
+        <button class="test-act-btn" id="testApple5">必中 苹果(5x)</button>
+        <button class="test-act-btn" id="testAdd1000">💰 补 1000 积分</button>
+        <button class="test-act-btn" id="testResetAll">🧹 重置全部</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Leaderboard Modal (龙虎榜) -->
+  <div class="modal-mask" id="leaderboardModal">
+    <div class="modal-card">
+      <h3>
+        <span>🏆 街机龙虎榜 (TOP 排行)</span>
+        <button class="modal-close-btn" id="btnCloseLeaderboard">关闭</button>
+      </h3>
+      <p style="color:#aaa; font-size:0.75rem;">与好友并肩作战，实时比拼积分与单局最高奖励！</p>
+      <div style="max-height:300px; overflow-y:auto; margin-top:8px;">
+        <table class="rank-table">
+          <thead>
+            <tr>
+              <th style="width:18%;">排名</th>
+              <th style="width:42%;">玩家昵称</th>
+              <th style="width:22%;">金币结余</th>
+              <th style="width:18%;">最高单赢</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody">
+            <!-- Dynamic ranks -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Login & Register Modal -->
+  <div class="modal-mask" id="authModal">
+    <div class="modal-card" style="max-width:360px;">
+      <h3>
+        <span id="authTitle">玩家登录 / 切换</span>
+        <button class="modal-close-btn" id="btnCloseAuth">关闭</button>
+      </h3>
+
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="authTabLogin">登录账号</div>
+        <div class="auth-tab" id="authTabRegister">注册新账号</div>
+      </div>
+
+      <div class="auth-form-group">
+        <label>玩家昵称 (用户名):</label>
+        <input type="text" class="auth-input" id="authUsername" placeholder="请输入昵称" maxlength="12">
+      </div>
+
+      <div class="auth-form-group">
+        <label>安全密码 (选填，任意字符):</label>
+        <input type="password" class="auth-input" id="authPassword" placeholder="输入密码" maxlength="18">
+      </div>
+
+      <div id="authMsg" style="font-size:0.75rem; color:#ffd32a; min-height:18px; margin-bottom:8px;"></div>
+
+      <button class="btn-auth-submit" id="btnAuthSubmit">登录并开玩</button>
+    </div>
+  </div>
+
+  <!-- Rules Modal -->
+  <div class="modal-mask" id="rulesModal">
+    <div class="modal-card">
+      <h3>
+        <span>📖 经典街机水果机规则</span>
+        <button class="modal-close-btn" id="btnCloseRules">关闭</button>
+      </h3>
+      <p><strong>1. 玩法说明：</strong>点击下方 8 种水果/标识的绿色实体按钮进行押分，或点击「ALL +1」全押。点击「GO」启动外圈 24 格跑灯！</p>
+      <p><strong>2. 倍率与加权几率说明：</strong></p>
+      <ul>
+        <li>BAR：x120(超大奖) / x50 / x25</li>
+        <li>77：x40，小77：x3</li>
+        <li>双星：x30，小双星：x3</li>
+        <li>西瓜：x20，小西瓜：x3</li>
+        <li>铃铛：x20，小铃铛：x3</li>
+        <li>葡萄：x15，小葡萄：x3</li>
+        <li>橙子：x10，小橙子：x3</li>
+        <li>苹果：x5 (基础高频水果)</li>
+      </ul>
+      <p style="color:#f1c40f;"><strong>⚠️ 赔率平衡提示：</strong>游戏严格采用街机加权算法。若对所有样式盲目全押，绝大部分回合将开出小水果(3倍)或苹果(5倍)而净亏 3~5 块。请合理选门押分！</p>
+      <p><strong>3. 💫 流星跑火车 (SHOOTING STAR BONUS)：</strong></p>
+      <ul>
+        <li><strong>单星流星 (第9格)：</strong>彗星绕盘飞驰，最终随机定格命中 <strong>1 个方格</strong> 并发放双倍流星幸运奖！</li>
+        <li><strong>三星流星 (第21格)：</strong>召唤三星齐落·大三元！流星群连续扫射并同时命中 <strong>3 个互不相同的方格</strong>，3格奖励全额合并发放！</li>
+      </ul>
+      <p><strong>4. 决胜赌大小：</strong>中奖后可点击中间「1-6」或「8-13」按钮猜大小，猜中奖励翻倍，最多可连胜 5 次！或直接点击「COLLECT」存入积分。</p>
+      <p><strong>5. 每日福利：</strong>每天登录可点击顶部「🎁 签到 +20」直接领取 20 块！新注册账号默认赠送 100 块启动金！</p>
+      <p style="color:#e74c3c;"><strong>声明：</strong>本游戏仅供朋友间休闲怀旧娱乐，采用纯虚拟游戏积分，不含任何真金充值或提现功能。</p>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div class="modal-mask" id="historyModal">
+    <div class="modal-card">
+      <h3>
+        <span>🕒 最近 20 局对局记录</span>
+        <button class="modal-close-btn" id="btnCloseHistory">关闭</button>
+      </h3>
+      <table style="width:100%; border-collapse:collapse; font-size:0.75rem; text-align:left;">
+        <thead>
+          <tr style="color:#f1c40f; border-bottom:1px solid #5a1111;">
+            <th style="padding:6px 8px;">局数</th>
+            <th style="padding:6px 8px;">总押</th>
+            <th style="padding:6px 8px;">开出</th>
+            <th style="padding:6px 8px;">赢得</th>
+            <th style="padding:6px 8px;">净变动</th>
+          </tr>
+        </thead>
+        <tbody id="historyBody">
+          <tr><td colspan="5" style="text-align:center; color:#888; padding:12px;">暂无记录</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+/**
+ * Retro Fruit Master — Classic Arcade Fruit Machine (Xiao Ma Li / 经典小玛莉)
+ * Balanced Arcade Odds (加权概率与防全押包赚算法)
+ * Dual Meteor Train Bonus:
+ * - Single Meteor (单星流星: 中1个方格)
+ * - Triple Meteor (三星流星: 3星齐落，连中3个方格)
+ * User Login/Register System (默认100块), Daily Claim (每日签到领20块), 龙虎榜 (Leaderboard)
+ */
+
+const CONFIG = {
+  INITIAL_NEW_USER_CREDITS: 100, // 默认新账号 100 块
+  DAILY_CLAIM_AMOUNT: 20,         // 每天登陆领取 20 块
+  MAX_BET_PER_SYMBOL: 99,
+  MAX_HISTORY: 20,
+  MAX_GAMBLE_STREAK: 5,
+  STORAGE_USERS_KEY: 'retro_fruit_users_data',
+  STORAGE_SESSION_KEY: 'retro_fruit_current_username'
+};
+
+// 24 Perimeter Lamp Cells (Clockwise: Top 7, Right 5, Bottom 7, Left 5)
+// Notice Cell 9 is Single Meteor, Cell 21 is Triple Meteor!
+const CELLS_DEF = [
+  // Top Row (0..6)
+  { idx: 0, sym: 'orange', name: '橙子', mult: 10, sub: '', tag: 'x10' },
+  { idx: 1, sym: 'bell', name: '铃铛', mult: 20, sub: '', tag: 'x20' },
+  { idx: 2, sym: 'bar', name: 'BAR', mult: 50, sub: 'BAR50', tag: 'x50' },
+  { idx: 3, sym: 'bar', name: 'BAR', mult: 120, sub: 'BAR120', tag: 'x120' },
+  { idx: 4, sym: 'bar', name: 'BAR', mult: 25, sub: 'BAR25', tag: 'x25' },
+  { idx: 5, sym: 'apple', name: '苹果', mult: 5, sub: '', tag: 'x5' },
+  { idx: 6, sym: 'plum', name: '葡萄', mult: 15, sub: '', tag: 'x15' },
+
+  // Right Column (7..11)
+  { idx: 7, sym: 'watermelon', name: '西瓜', mult: 20, sub: '', tag: 'x20' },
+  { idx: 8, sym: 'watermelon', name: '小西瓜', mult: 3, sub: 'small', tag: 'x3' },
+  { idx: 9, sym: 'special', name: '单星流星', mult: 'TRAIN_SINGLE', sub: 'train', tag: '单星' },
+  { idx: 10, sym: 'apple', name: '苹果', mult: 5, sub: '', tag: 'x5' },
+  { idx: 11, sym: 'orange', name: '小橙子', mult: 3, sub: 'small', tag: 'x3' },
+
+  // Bottom Row (12..18, right to left)
+  { idx: 12, sym: 'orange', name: '橙子', mult: 10, sub: '', tag: 'x10' },
+  { idx: 13, sym: 'bell', name: '铃铛', mult: 20, sub: '', tag: 'x20' },
+  { idx: 14, sym: 'seven', name: '小77', mult: 3, sub: 'small', tag: 'x3' },
+  { idx: 15, sym: 'seven', name: '幸运77', mult: 40, sub: '', tag: 'x40' },
+  { idx: 16, sym: 'apple', name: '苹果', mult: 5, sub: '', tag: 'x5' },
+  { idx: 17, sym: 'plum', name: '小葡萄', mult: 3, sub: 'small', tag: 'x3' },
+  { idx: 18, sym: 'plum', name: '葡萄', mult: 15, sub: '', tag: 'x15' },
+
+  // Left Column (19..23, bottom to top)
+  { idx: 19, sym: 'star', name: '双星', mult: 30, sub: '', tag: 'x30' },
+  { idx: 20, sym: 'star', name: '小双星', mult: 3, sub: 'small', tag: 'x3' },
+  { idx: 21, sym: 'special', name: '三星流星', mult: 'TRAIN_TRIPLE', sub: 'train', tag: '三星' },
+  { idx: 22, sym: 'apple', name: '苹果', mult: 5, sub: '', tag: 'x5' },
+  { idx: 23, sym: 'bell', name: '小铃铛', mult: 3, sub: 'small', tag: 'x3' }
+];
+
+// Realistic Weighted Probability Table (街机真实加权概率表)
+// 彻底解决全押稳赚问题：小水果(x3)与苹果(x5)占 ~77%，若玩家全押，绝大部分回合净亏 -3 或 -5！
+const CELL_WEIGHTS = {
+  // 小水果 (x3): 6格 * 75 = 450 (45%)
+  8: 75, 11: 75, 14: 75, 17: 75, 20: 75, 23: 75,
+  // 苹果 (x5): 4格 * 80 = 320 (32%)  --> 小水果+苹果合计 77%！
+  5: 80, 10: 80, 16: 80, 22: 80,
+  // 橙子 (x10): 2格 * 30 = 60 (6%)
+  0: 30, 12: 30,
+  // 葡萄 (x15): 2格 * 24 = 48 (4.8%)
+  6: 24, 18: 24,
+  // 铃铛 (x20): 2格 * 18 = 36 (3.6%)
+  1: 18, 13: 18,
+  // 西瓜 (x20): 1格 = 18 (1.8%)
+  7: 18,
+  // 双星 (x30): 1格 = 14 (1.4%)
+  19: 14,
+  // 幸运77 (x40): 1格 = 10 (1.0%)
+  15: 10,
+  // BAR系列: x25(10), x50(6), x120(3) = 19 (1.9%)
+  4: 10, 2: 6, 3: 3,
+  // 流星火车: Cell 9单星(12), Cell 21三星(6) = 18 (1.8%)
+  9: 12, 21: 6
+};
+
+// 8 Betting Categories (matching bottom console)
+const BET_CATEGORIES = [
+  { key: 'bar', name: 'BAR', mult: 120, label: '120' },
+  { key: 'seven', name: '77', mult: 40, label: '40' },
+  { key: 'star', name: '双星', mult: 30, label: '30' },
+  { key: 'watermelon', name: '西瓜', mult: 20, label: '20' },
+  { key: 'bell', name: '铃铛', mult: 20, label: '20' },
+  { key: 'plum', name: '葡萄', mult: 15, label: '15' },
+  { key: 'orange', name: '橙子', mult: 10, label: '10' },
+  { key: 'apple', name: '苹果', mult: 5, label: '5' }
+];
+
+// Default Hall of Fame NPCs for 龙虎榜
+const DEFAULT_LEADERBOARD_NPCS = [
+  { username: '广州靓仔 (老街机王)', credits: 6880, maxWin: 2400 },
+  { username: '水果大亨 (老八)', credits: 5200, maxWin: 1800 },
+  { username: '小玛莉连胜仙人', credits: 4150, maxWin: 1600 },
+  { username: '幸运星晴天', credits: 3200, maxWin: 1200 },
+  { username: '街机神偷', credits: 2480, maxWin: 960 },
+  { username: '流星追梦人', credits: 1880, maxWin: 800 }
+];
+
+// Sound Synthesizer via Web Audio API
+class ArcadeSound {
+  constructor() {
+    this.enabled = true;
+    this.ctx = null;
+    const unlock = () => {
+      if (!this.ctx) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) this.ctx = new AudioCtx();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+    };
+    window.addEventListener('click', unlock, { once: true });
+    window.addEventListener('touchstart', unlock, { once: true });
+  }
+
+  toggle() {
+    this.enabled = !this.enabled;
+    return this.enabled;
+  }
+
+  play(type) {
+    if (!this.enabled) return;
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (AudioCtx) this.ctx = new AudioCtx();
+    }
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+
+    const now = this.ctx.currentTime;
+    const ctx = this.ctx;
+
+    switch (type) {
+      case 'tick': {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800 + Math.random() * 200, now);
+        gain.gain.setValueAtTime(0.12, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.03);
+        break;
+      }
+      case 'comet': {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(1200 + Math.random() * 400, now);
+        osc.frequency.exponentialRampToValueAtTime(300, now + 0.06);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.linearRampToValueAtTime(0.01, now + 0.06);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.06);
+        break;
+      }
+      case 'stop': {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, now);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+        break;
+      }
+      case 'win': {
+        [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const t = now + idx * 0.1;
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.25, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.25);
+        });
+        break;
+      }
+      case 'train': {
+        [880, 1174, 1318].forEach(freq => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.6);
+        });
+        break;
+      }
+      case 'coin': {
+        [987.77, 1318.51].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const t = now + idx * 0.08;
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.3);
+        });
+        break;
+      }
+      case 'dice': {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300 + Math.random() * 300, now);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.05);
+        break;
+      }
+      case 'gamble_win': {
+        [659.25, 1046.50].forEach((freq, idx) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          const t = now + idx * 0.12;
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, t);
+          gain.gain.setValueAtTime(0.3, t);
+          gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.25);
+        });
+        break;
+      }
+      case 'gamble_lose': {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(220, now);
+        osc.frequency.linearRampToValueAtTime(90, now + 0.4);
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.4);
+        break;
+      }
+      case 'click': {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(900, now);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.03);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.03);
+        break;
+      }
+    }
+  }
+}
+
+// User Manager for Register/Login/Daily Bonus
+class UserManager {
+  constructor() {
+    this.users = [];
+    this.currentUser = null;
+    this.load();
+  }
+
+  load() {
+    try {
+      const raw = localStorage.getItem(CONFIG.STORAGE_USERS_KEY);
+      if (raw) {
+        this.users = JSON.parse(raw);
+      }
+      const sessionUser = localStorage.getItem(CONFIG.STORAGE_SESSION_KEY);
+      if (sessionUser && this.users.find(u => u.username === sessionUser)) {
+        this.currentUser = this.users.find(u => u.username === sessionUser);
+      } else {
+        let defaultUser = this.users.find(u => u.username === '玩家一号');
+        if (!defaultUser) {
+          defaultUser = {
+            username: '玩家一号',
+            password: '123',
+            credits: CONFIG.INITIAL_NEW_USER_CREDITS, // 100
+            maxWin: 0,
+            lastDailyDate: '',
+            createdAt: Date.now()
+          };
+          this.users.push(defaultUser);
+          this.save();
+        }
+        this.currentUser = defaultUser;
+        localStorage.setItem(CONFIG.STORAGE_SESSION_KEY, defaultUser.username);
+      }
+    } catch (e) {
+      console.warn('Error loading users:', e);
+      this.currentUser = {
+        username: '玩家一号',
+        password: '123',
+        credits: CONFIG.INITIAL_NEW_USER_CREDITS,
+        maxWin: 0,
+        lastDailyDate: '',
+        createdAt: Date.now()
+      };
+    }
+  }
+
+  save() {
+    try {
+      localStorage.setItem(CONFIG.STORAGE_USERS_KEY, JSON.stringify(this.users));
+      if (this.currentUser) {
+        localStorage.setItem(CONFIG.STORAGE_SESSION_KEY, this.currentUser.username);
+      }
+    } catch (e) {
+      console.warn('Error saving users:', e);
+    }
+  }
+
+  register(username, password) {
+    username = username.trim();
+    if (!username) return { ok: false, msg: '用户名不能为空！' };
+    if (username.length < 2) return { ok: false, msg: '用户名至少2个字符！' };
+    if (this.users.find(u => u.username === username)) {
+      return { ok: false, msg: '该用户名已存在，请直接登录或换个名字！' };
+    }
+    const newUser = {
+      username,
+      password,
+      credits: CONFIG.INITIAL_NEW_USER_CREDITS, // 默认新账号100块
+      maxWin: 0,
+      lastDailyDate: '',
+      createdAt: Date.now()
+    };
+    this.users.push(newUser);
+    this.currentUser = newUser;
+    this.save();
+    return { ok: true, user: newUser, msg: `注册成功！已发放初始新人基金 ${CONFIG.INITIAL_NEW_USER_CREDITS} 块！` };
+  }
+
+  login(username, password) {
+    username = username.trim();
+    const found = this.users.find(u => u.username === username);
+    if (!found) return { ok: false, msg: '用户不存在，请先注册！' };
+    if (found.password && found.password !== password) {
+      return { ok: false, msg: '密码错误！' };
+    }
+    this.currentUser = found;
+    this.save();
+    return { ok: true, user: found, msg: `登录成功，欢迎回来 ${username}！` };
+  }
+
+  logout() {
+    this.currentUser = null;
+    localStorage.removeItem(CONFIG.STORAGE_SESSION_KEY);
+  }
+
+  getTodayDateString() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  canClaimDaily() {
+    if (!this.currentUser) return false;
+    const today = this.getTodayDateString();
+    return this.currentUser.lastDailyDate !== today;
+  }
+
+  claimDaily() {
+    if (!this.currentUser) return { ok: false, msg: '请先登录！' };
+    if (!this.canClaimDaily()) {
+      return { ok: false, msg: '今天已经领取过每日福利了，明天再来吧！' };
+    }
+    const today = this.getTodayDateString();
+    this.currentUser.credits += CONFIG.DAILY_CLAIM_AMOUNT; // +20
+    this.currentUser.lastDailyDate = today;
+    this.save();
+    return { ok: true, amount: CONFIG.DAILY_CLAIM_AMOUNT, newCredits: this.currentUser.credits, msg: `每日签到成功！已领取 ${CONFIG.DAILY_CLAIM_AMOUNT} 块，祝您手气长虹！` };
+  }
+
+  updateCredits(credits) {
+    if (this.currentUser) {
+      this.currentUser.credits = credits;
+      this.save();
+    }
+  }
+
+  updateMaxWin(win) {
+    if (this.currentUser && win > (this.currentUser.maxWin || 0)) {
+      this.currentUser.maxWin = win;
+      this.save();
+    }
+  }
+
+  getLeaderboard() {
+    const list = [...this.users.map(u => ({ username: u.username, credits: u.credits, maxWin: u.maxWin || 0, isReal: true }))];
+    DEFAULT_LEADERBOARD_NPCS.forEach(npc => {
+      if (!list.find(item => item.username === npc.username)) {
+        list.push({ username: npc.username, credits: npc.credits, maxWin: npc.maxWin, isReal: false });
+      }
+    });
+    list.sort((a, b) => b.credits - a.credits);
+    return list;
+  }
+}
+
+// Main Game Controller
+class ClassicFruitGame {
+  constructor() {
+    this.sound = new ArcadeSound();
+    this.userMgr = new UserManager();
+
+    this.bonusWin = 0;
+    this.bets = {
+      bar: 0,
+      seven: 0,
+      star: 0,
+      watermelon: 0,
+      bell: 0,
+      plum: 0,
+      orange: 0,
+      apple: 0
+    };
+
+    this.currentLampIdx = 0;
+    this.isRunning = false;
+    this.isGambling = false;
+    this.gambleStreak = 0;
+    this.history = [];
+    this.forcedTarget = null;
+    this.testMode = false;
+
+    this.dom = {};
+    this.init();
+  }
+
+  get credits() {
+    return this.userMgr.currentUser ? this.userMgr.currentUser.credits : 0;
+  }
+
+  set credits(val) {
+    this.userMgr.updateCredits(val);
+  }
+
+  init() {
+    this.cacheDOM();
+    this.loadHistory();
+    this.bindEvents();
+    this.updateUserUI();
+    this.updateUI();
+    this.setLamp(0);
+    this.setMessage('欢迎光临！请下注后按 GO 开始！');
+
+    if (this.userMgr.canClaimDaily()) {
+      setTimeout(() => {
+        this.setMessage(`🎁 提醒：今日每日福利 ${CONFIG.DAILY_CLAIM_AMOUNT} 块待领取！点击上方签到按键！`);
+      }, 800);
+    }
+  }
+
+  cacheDOM() {
+    this.dom = {
+      currentUsernameText: document.getElementById('currentUsernameText'),
+      btnDailyClaim: document.getElementById('btnDailyClaim'),
+      btnLeaderboard: document.getElementById('btnLeaderboard'),
+      btnUserAuth: document.getElementById('btnUserAuth'),
+
+      displayBonusWin: document.getElementById('displayBonusWin'),
+      displayCredit: document.getElementById('displayCredit'),
+      centerDigits: document.getElementById('centerDigits'),
+      centerStatusMsg: document.getElementById('centerStatusMsg'),
+
+      btnAllPlus: document.getElementById('btnAllPlus'),
+      btnClear: document.getElementById('btnClear'),
+      btnMax: document.getElementById('btnMax'),
+      btnGambleSmall: document.getElementById('btnGambleSmall'),
+      btnGambleBig: document.getElementById('btnGambleBig'),
+      btnGo: document.getElementById('btnGo'),
+
+      btnSound: document.getElementById('btnSound'),
+      btnRules: document.getElementById('btnRules'),
+      btnHistory: document.getElementById('btnHistory'),
+      btnTest: document.getElementById('btnTest'),
+      testPanel: document.getElementById('testPanel'),
+
+      rulesModal: document.getElementById('rulesModal'),
+      historyModal: document.getElementById('historyModal'),
+      historyBody: document.getElementById('historyBody'),
+      leaderboardModal: document.getElementById('leaderboardModal'),
+      leaderboardBody: document.getElementById('leaderboardBody'),
+      authModal: document.getElementById('authModal'),
+      authTabLogin: document.getElementById('authTabLogin'),
+      authTabRegister: document.getElementById('authTabRegister'),
+      authTitle: document.getElementById('authTitle'),
+      authUsername: document.getElementById('authUsername'),
+      authPassword: document.getElementById('authPassword'),
+      btnAuthSubmit: document.getElementById('btnAuthSubmit'),
+      authMsg: document.getElementById('authMsg')
+    };
+
+    this.dom.betDisplays = {};
+    this.dom.betButtons = {};
+    BET_CATEGORIES.forEach(cat => {
+      this.dom.betDisplays[cat.key] = document.getElementById(`betLed_${cat.key}`);
+      this.dom.betButtons[cat.key] = document.getElementById(`betBtn_${cat.key}`);
+    });
+  }
+
+  loadHistory() {
+    try {
+      const saved = localStorage.getItem('retro_fruit_history');
+      if (saved) {
+        this.history = JSON.parse(saved).slice(0, CONFIG.MAX_HISTORY);
+      }
+    } catch (e) {
+      console.warn('Error loading history:', e);
+    }
+  }
+
+  saveHistory() {
+    try {
+      localStorage.setItem('retro_fruit_history', JSON.stringify(this.history));
+    } catch (e) {
+      console.warn('Error saving history:', e);
+    }
+  }
+
+  updateUserUI() {
+    const cur = this.userMgr.currentUser;
+    if (cur) {
+      this.dom.currentUsernameText.textContent = cur.username;
+      const canClaim = this.userMgr.canClaimDaily();
+      if (canClaim) {
+        this.dom.btnDailyClaim.classList.remove('claimed');
+        this.dom.btnDailyClaim.innerHTML = '🎁 签到 +20';
+        this.dom.btnDailyClaim.title = '每天登陆领取20块！';
+      } else {
+        this.dom.btnDailyClaim.classList.add('claimed');
+        this.dom.btnDailyClaim.innerHTML = '✓ 今日已领';
+        this.dom.btnDailyClaim.title = '今天已领取，明日刷新！';
+      }
+    }
+  }
+
+  getTotalBet() {
+    return Object.values(this.bets).reduce((a, b) => a + b, 0);
+  }
+
+  updateUI() {
+    this.dom.displayCredit.textContent = String(Math.floor(this.credits)).padStart(3, '0');
+    this.dom.displayBonusWin.textContent = String(Math.floor(this.bonusWin)).padStart(3, '0');
+
+    BET_CATEGORIES.forEach(cat => {
+      const el = this.dom.betDisplays[cat.key];
+      if (el) el.textContent = String(this.bets[cat.key]).padStart(2, '0');
+    });
+
+    const totalBet = this.getTotalBet();
+    this.dom.btnGo.disabled = this.isRunning;
+    
+    if (!this.isRunning && this.bonusWin > 0) {
+      this.dom.btnGo.textContent = 'COLLECT';
+    } else {
+      this.dom.btnGo.textContent = 'GO';
+    }
+
+    const canBet = !this.isRunning;
+    this.dom.btnAllPlus.disabled = !canBet || this.credits < 8;
+    this.dom.btnClear.disabled = !canBet || totalBet === 0;
+    this.dom.btnMax.disabled = !canBet || this.credits === 0;
+
+    const canGamble = !this.isRunning && this.bonusWin > 0;
+    this.dom.btnGambleSmall.disabled = !canGamble;
+    this.dom.btnGambleBig.disabled = !canGamble;
+  }
+
+  setMessage(msg) {
+    if (this.dom.centerStatusMsg) {
+      this.dom.centerStatusMsg.textContent = msg;
+    }
+  }
+
+  clearAllLamps() {
+    document.querySelectorAll('.lamp-cell').forEach(el => {
+      el.classList.remove('lit', 'comet-head', 'comet-tail-1', 'comet-tail-2', 'comet-tail-3', 'comet-tail-4', 'win-flash');
+    });
+  }
+
+  setLamp(idx) {
+    this.clearAllLamps();
+    this.currentLampIdx = idx;
+    const cur = document.getElementById(`lampCell_${idx}`);
+    if (cur) cur.classList.add('lit');
+  }
+
+  // Bet adjustments
+  addBet(key, amt = 1) {
+    if (this.isRunning) return;
+    this.sound.play('click');
+
+    const total = this.getTotalBet();
+    if (total + amt > this.credits) {
+      this.setMessage('⚠️ 积分不足！可点击上方领取每日福利。');
+      return;
+    }
+
+    if (this.bets[key] + amt <= CONFIG.MAX_BET_PER_SYMBOL) {
+      this.bets[key] += amt;
+      this.updateUI();
+    }
+  }
+
+  addBetAll() {
+    if (this.isRunning) return;
+    this.sound.play('click');
+    const total = this.getTotalBet();
+    if (total + 8 > this.credits) {
+      this.setMessage('⚠️ 积分不足以全押！');
+      return;
+    }
+    BET_CATEGORIES.forEach(cat => {
+      if (this.bets[cat.key] < CONFIG.MAX_BET_PER_SYMBOL) {
+        this.bets[cat.key] += 1;
+      }
+    });
+    this.updateUI();
+  }
+
+  clearBets() {
+    if (this.isRunning) return;
+    this.sound.play('click');
+    BET_CATEGORIES.forEach(cat => { this.bets[cat.key] = 0; });
+    this.updateUI();
+    this.setMessage('已清空所有下注。');
+  }
+
+  maxBet() {
+    if (this.isRunning) return;
+    this.sound.play('click');
+    const remain = Math.min(this.credits - this.getTotalBet(), 80);
+    const perCat = Math.floor(remain / 8);
+    if (perCat > 0) {
+      BET_CATEGORIES.forEach(cat => {
+        this.bets[cat.key] = Math.min(CONFIG.MAX_BET_PER_SYMBOL, this.bets[cat.key] + perCat);
+      });
+      this.updateUI();
+    }
+  }
+
+  // 科学加权随机抽选（加权算法，防止全押包赚）
+  pickWeightedTarget() {
+    let totalWeight = 0;
+    for (let i = 0; i < 24; i++) {
+      totalWeight += (CELL_WEIGHTS[i] || 10);
+    }
+    let r = Math.random() * totalWeight;
+    for (let i = 0; i < 24; i++) {
+      const w = CELL_WEIGHTS[i] || 10;
+      if (r < w) return i;
+      r -= w;
+    }
+    return 5; // fallback apple
+  }
+
+  // GO / START SPIN
+  startSpin() {
+    if (this.isRunning) return;
+
+    if (this.bonusWin > 0) {
+      this.collectWin();
+      return;
+    }
+
+    const totalBet = this.getTotalBet();
+    if (totalBet <= 0) {
+      this.setMessage('⚠️ 请先点击下方绿色按钮下注！');
+      this.sound.play('click');
+      return;
+    }
+
+    if (this.credits < totalBet) {
+      this.setMessage('⚠️ 积分不足！请减少下注或领取每日福利。');
+      this.sound.play('click');
+      return;
+    }
+
+    this.credits -= totalBet;
+    this.isRunning = true;
+    this.gambleStreak = 0;
+    this.updateUI();
+    this.setMessage('🎰 跑灯中，祝您好运！');
+
+    // Determine target cell
+    let targetIdx;
+    if (this.forcedTarget !== null) {
+      targetIdx = this.forcedTarget;
+      this.forcedTarget = null;
+    } else {
+      targetIdx = this.pickWeightedTarget();
+    }
+
+    const current = this.currentLampIdx;
+    const fullRounds = 2 + Math.floor(Math.random() * 2);
+    const totalSteps = fullRounds * 24 + ((targetIdx - current + 24) % 24);
+
+    let step = 0;
+    let speed = 40;
+
+    const runStep = () => {
+      step++;
+      const nextIdx = (current + step) % 24;
+      this.setLamp(nextIdx);
+      this.sound.play('tick');
+
+      const remain = totalSteps - step;
+      this.dom.centerDigits.textContent = String(nextIdx).padStart(2, '0');
+
+      if (step < totalSteps) {
+        if (remain < 15) {
+          speed += 25;
+        } else if (remain < 30) {
+          speed += 10;
+        }
+        setTimeout(runStep, speed);
+      } else {
+        this.sound.play('stop');
+        const finalCell = CELLS_DEF[targetIdx];
+        const cellEl = document.getElementById(`lampCell_${targetIdx}`);
+        if (cellEl) cellEl.classList.add('win-flash');
+
+        setTimeout(() => {
+          this.evaluateResult(finalCell);
+        }, 500);
+      }
+    };
+
+    setTimeout(runStep, speed);
+  }
+
+  evaluateResult(cell) {
+    // 1. 流星火车触发检查（区分单星与三星！）
+    if (cell.mult === 'TRAIN_SINGLE') {
+      this.sound.play('train');
+      this.setMessage('💫 命中单星火车！准备发射单星流星 (中1个方格)！');
+      setTimeout(() => {
+        this.runSingleMeteorTrain();
+      }, 1000);
+      return;
+    }
+
+    if (cell.mult === 'TRAIN_TRIPLE') {
+      this.sound.play('train');
+      this.setMessage('🌠 命中超级三星火车！准备召唤三星齐落 (中3个方格)！');
+      setTimeout(() => {
+        this.runTripleMeteorTrain();
+      }, 1000);
+      return;
+    }
+
+    // 2. Regular Symbol Win
+    let won = 0;
+    const symKey = cell.sym;
+    const userBet = this.bets[symKey] || 0;
+
+    if (userBet > 0) {
+      if (cell.sub === 'small') {
+        won = userBet * 3;
+      } else if (symKey === 'bar') {
+        won = userBet * cell.mult;
+      } else {
+        won = userBet * cell.mult;
+      }
+    }
+
+    if (won > 0) {
+      this.sound.play('win');
+      this.bonusWin = won;
+      this.userMgr.updateMaxWin(won);
+      this.setMessage(`🎉 命中 ${cell.name} (${cell.tag})！赢得 ${won} 积分！`);
+      this.isRunning = false;
+      this.updateUI();
+    } else {
+      this.setMessage(`开出 ${cell.name} (${cell.tag})。未命中，按下 GO 继续！`);
+      this.isRunning = false;
+      this.recordHistory({
+        bet: this.getTotalBet(),
+        result: `${cell.name} (${cell.tag})`,
+        win: 0,
+        net: -this.getTotalBet()
+      });
+      this.updateUI();
+    }
+  }
+
+  // --- 流星火车类型 1：单星流星 (中 1 个方格) ---
+  runSingleMeteorTrain() {
+    this.setMessage('🌠 单星流星飞驰而过！拖曳星尾绕圈冲刺...');
+    this.sound.play('train');
+
+    // 随机选择 1 个非火车格子作为目标
+    const eligible = CELLS_DEF.filter(c => c.sym !== 'special').map(c => c.idx);
+    const targetIdx = eligible[Math.floor(Math.random() * eligible.length)];
+
+    const startIdx = this.currentLampIdx;
+    const loops = 1 + Math.floor(Math.random() * 2);
+    const totalSteps = loops * 24 + ((targetIdx - startIdx + 24) % 24);
+
+    let step = 0;
+    let speed = 35;
+
+    const renderComet = (headIdx) => {
+      this.clearAllLamps();
+      const hEl = document.getElementById(`lampCell_${headIdx}`);
+      if (hEl) hEl.classList.add('comet-head');
+
+      const t1 = (headIdx - 1 + 24) % 24;
+      const t2 = (headIdx - 2 + 24) % 24;
+      const t3 = (headIdx - 3 + 24) % 24;
+      const t4 = (headIdx - 4 + 24) % 24;
+
+      const e1 = document.getElementById(`lampCell_${t1}`);
+      const e2 = document.getElementById(`lampCell_${t2}`);
+      const e3 = document.getElementById(`lampCell_${t3}`);
+      const e4 = document.getElementById(`lampCell_${t4}`);
+
+      if (e1) e1.classList.add('comet-tail-1');
+      if (e2) e2.classList.add('comet-tail-2');
+      if (e3) e3.classList.add('comet-tail-3');
+      if (e4) e4.classList.add('comet-tail-4');
+
+      this.currentLampIdx = headIdx;
+      this.dom.centerDigits.textContent = String(headIdx).padStart(2, '0');
+    };
+
+    const cometStep = () => {
+      step++;
+      const headIdx = (startIdx + step) % 24;
+      renderComet(headIdx);
+      this.sound.play('comet');
+
+      const remain = totalSteps - step;
+      if (step < totalSteps) {
+        if (remain < 10) speed += 30;
+        else if (remain < 20) speed += 15;
+        setTimeout(cometStep, speed);
+      } else {
+        // 定格在单一目标方块！
+        this.clearAllLamps();
+        const finalCell = CELLS_DEF[targetIdx];
+        const finalEl = document.getElementById(`lampCell_${targetIdx}`);
+        if (finalEl) finalEl.classList.add('lit', 'win-flash');
+        this.sound.play('stop');
+
+        setTimeout(() => {
+          this.sound.play('win');
+          const userBet = this.bets[finalCell.sym] || (this.getTotalBet() > 0 ? Math.ceil(this.getTotalBet() / 4) : 10);
+          const mult = typeof finalCell.mult === 'number' ? finalCell.mult : 20;
+          const reward = Math.max(30, userBet * mult * 2);
+
+          this.bonusWin += reward;
+          this.userMgr.updateMaxWin(reward);
+          this.setMessage(`👑 单星流星定格：${finalCell.name} (${finalCell.tag})！斩获流星幸运奖 ${reward} 积分！`);
+          this.isRunning = false;
+          this.updateUI();
+        }, 600);
+      }
+    };
+
+    setTimeout(cometStep, speed);
+  }
+
+  // --- 流星火车类型 2：三星流星 (中 3 个方格！) ---
+  runTripleMeteorTrain() {
+    this.setMessage('💫 召唤三星齐落·大三元！流星群扫射全盘中 3 个方格！');
+    this.sound.play('train');
+
+    // 随机挑选 3 个互不相同的非火车方格
+    const eligible = CELLS_DEF.filter(c => c.sym !== 'special').map(c => c.idx);
+    // Shuffle and pick 3
+    for (let i = eligible.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [eligible[i], eligible[j]] = [eligible[j], eligible[i]];
+    }
+    const target3 = eligible.slice(0, 3); // 3 distinct cells!
+
+    // 第一阶段：流星尾绕盘 1 圈飞驰
+    const startIdx = this.currentLampIdx;
+    const totalSteps = 24 + ((target3[0] - startIdx + 24) % 24);
+
+    let step = 0;
+    let speed = 35;
+
+    const renderComet = (headIdx) => {
+      this.clearAllLamps();
+      const hEl = document.getElementById(`lampCell_${headIdx}`);
+      if (hEl) hEl.classList.add('comet-head');
+
+      const t1 = (headIdx - 1 + 24) % 24;
+      const t2 = (headIdx - 2 + 24) % 24;
+      const t3 = (headIdx - 3 + 24) % 24;
+      const t4 = (headIdx - 4 + 24) % 24;
+
+      const e1 = document.getElementById(`lampCell_${t1}`);
+      const e2 = document.getElementById(`lampCell_${t2}`);
+      const e3 = document.getElementById(`lampCell_${t3}`);
+      const e4 = document.getElementById(`lampCell_${t4}`);
+
+      if (e1) e1.classList.add('comet-tail-1');
+      if (e2) e2.classList.add('comet-tail-2');
+      if (e3) e3.classList.add('comet-tail-3');
+      if (e4) e4.classList.add('comet-tail-4');
+
+      this.currentLampIdx = headIdx;
+      this.dom.centerDigits.textContent = String(headIdx).padStart(2, '0');
+    };
+
+    const cometStep = () => {
+      step++;
+      const headIdx = (startIdx + step) % 24;
+      renderComet(headIdx);
+      this.sound.play('comet');
+
+      const remain = totalSteps - step;
+      if (step < totalSteps) {
+        if (remain < 10) speed += 25;
+        setTimeout(cometStep, speed);
+      } else {
+        // 第二阶段：三星依次点亮 3 个方格！
+        this.clearAllLamps();
+        let hitIndex = 0;
+        let totalTripleWin = 0;
+
+        const revealNextStar = () => {
+          if (hitIndex < 3) {
+            const idx = target3[hitIndex];
+            const cell = CELLS_DEF[idx];
+            const el = document.getElementById(`lampCell_${idx}`);
+            if (el) el.classList.add('lit', 'win-flash');
+            this.sound.play('stop');
+
+            const userBet = this.bets[cell.sym] || (this.getTotalBet() > 0 ? Math.ceil(this.getTotalBet() / 4) : 10);
+            const mult = typeof cell.mult === 'number' ? cell.mult : 15;
+            const singleWin = Math.max(20, userBet * mult);
+            totalTripleWin += singleWin;
+
+            this.setMessage(`🌠 第 ${hitIndex + 1} 颗流星锁定：${cell.name} (${cell.tag}) +${singleWin}币！`);
+            hitIndex++;
+            setTimeout(revealNextStar, 700);
+          } else {
+            // 全部 3 格已同时锁定受奖！
+            this.sound.play('win');
+            this.bonusWin += totalTripleWin;
+            this.userMgr.updateMaxWin(totalTripleWin);
+            this.setMessage(`👑 三星齐落圆满完成！3方格共计大奖 ${totalTripleWin} 积分！`);
+            this.isRunning = false;
+            this.updateUI();
+          }
+        };
+
+        revealNextStar();
+      }
+    };
+
+    setTimeout(cometStep, speed);
+  }
+
+  // Collect Win
+  collectWin() {
+    if (this.bonusWin <= 0) return;
+    this.sound.play('win');
+    const won = this.bonusWin;
+    this.credits += won;
+    this.userMgr.updateMaxWin(won);
+    this.bonusWin = 0;
+    this.gambleStreak = 0;
+    this.setMessage(`💰 成功领取 ${won} 积分入账！可用积分已更新。`);
+
+    this.recordHistory({
+      bet: this.getTotalBet(),
+      result: '奖励结算',
+      win: won,
+      net: won - this.getTotalBet()
+    });
+
+    this.updateUI();
+  }
+
+  // 赌大小 (Gamble 1-6 vs 8-13)
+  gamble(guess) {
+    if (this.isRunning || this.bonusWin <= 0) return;
+    this.isRunning = true;
+    this.sound.play('click');
+    this.setMessage(`🎲 决战大小！猜【${guess === 'SMALL' ? '1-6 小' : '8-13 大'}】，摇骰中...`);
+
+    let rollTicks = 0;
+    const rollTimer = setInterval(() => {
+      const fake = Math.floor(Math.random() * 13) + 1;
+      this.dom.centerDigits.textContent = String(fake).padStart(2, '0');
+      this.sound.play('dice');
+      rollTicks++;
+
+      if (rollTicks >= 10) {
+        clearInterval(rollTimer);
+        this.revealGamble(guess);
+      }
+    }, 80);
+  }
+
+  revealGamble(playerGuess) {
+    const diceNum = Math.floor(Math.random() * 13) + 1;
+    this.dom.centerDigits.textContent = String(diceNum).padStart(2, '0');
+
+    let won = false;
+    if (playerGuess === 'SMALL' && diceNum >= 1 && diceNum <= 6) won = true;
+    if (playerGuess === 'BIG' && diceNum >= 8 && diceNum <= 13) won = true;
+
+    if (won) {
+      this.sound.play('gamble_win');
+      this.bonusWin *= 2;
+      this.gambleStreak++;
+      this.userMgr.updateMaxWin(this.bonusWin);
+      this.setMessage(`🎉 猜中！开出 ${diceNum}！奖励翻倍至 ${this.bonusWin}！连赢 ${this.gambleStreak}/5`);
+
+      if (this.gambleStreak >= CONFIG.MAX_GAMBLE_STREAK) {
+        this.setMessage(`👑 达成 5 连胜上限！自动兑现 ${this.bonusWin} 积分！`);
+        setTimeout(() => {
+          this.isRunning = false;
+          this.collectWin();
+        }, 1200);
+        return;
+      }
+    } else {
+      this.sound.play('gamble_lose');
+      this.setMessage(`💥 遗憾开出 ${diceNum}，猜错了！本次奖励清零。`);
+      this.recordHistory({
+        bet: this.getTotalBet(),
+        result: `赌大小失败(开出${diceNum})`,
+        win: 0,
+        net: -this.getTotalBet()
+      });
+      this.bonusWin = 0;
+      this.gambleStreak = 0;
+    }
+
+    this.isRunning = false;
+    this.updateUI();
+  }
+
+  recordHistory(rec) {
+    this.history.unshift({
+      id: Date.now(),
+      bet: rec.bet,
+      result: rec.result,
+      win: rec.win,
+      net: rec.net,
+      time: new Date().toLocaleTimeString('zh-CN', { hour12: false })
+    });
+    if (this.history.length > CONFIG.MAX_HISTORY) this.history.pop();
+    this.saveHistory();
+    this.renderHistory();
+  }
+
+  renderHistory() {
+    const tbody = this.dom.historyBody;
+    if (!tbody) return;
+    if (this.history.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#888; padding:12px;">暂无游戏记录</td></tr>';
+      return;
+    }
+    tbody.innerHTML = '';
+    this.history.forEach((h, idx) => {
+      const tr = document.createElement('tr');
+      const isWin = h.net > 0;
+      tr.innerHTML = `
+        <td style="padding:6px 8px; border-bottom:1px solid #331111;">#${idx + 1}</td>
+        <td style="padding:6px 8px; border-bottom:1px solid #331111;">${h.bet}</td>
+        <td style="padding:6px 8px; border-bottom:1px solid #331111;">${h.result}</td>
+        <td style="padding:6px 8px; border-bottom:1px solid #331111; color:${h.win > 0 ? '#2ecc71' : '#aaa'};">${h.win}</td>
+        <td style="padding:6px 8px; border-bottom:1px solid #331111; color:${isWin ? '#2ecc71' : '#e74c3c'};">${isWin ? '+' + h.net : h.net}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  renderLeaderboard() {
+    const tbody = this.dom.leaderboardBody;
+    if (!tbody) return;
+    const list = this.userMgr.getLeaderboard();
+    tbody.innerHTML = '';
+
+    list.forEach((item, idx) => {
+      const tr = document.createElement('tr');
+      const isCur = this.userMgr.currentUser && item.username === this.userMgr.currentUser.username;
+      if (isCur) tr.classList.add('rank-self-row');
+
+      let rankDisplay = `#${idx + 1}`;
+      if (idx === 0) rankDisplay = '<span class="rank-badge-1">🥇 1</span>';
+      else if (idx === 1) rankDisplay = '<span class="rank-badge-2">🥈 2</span>';
+      else if (idx === 2) rankDisplay = '<span class="rank-badge-3">🥉 3</span>';
+
+      tr.innerHTML = `
+        <td style="padding:7px 8px; border-bottom:1px solid #330b0b;">${rankDisplay}</td>
+        <td style="padding:7px 8px; border-bottom:1px solid #330b0b;">${item.username}${isCur ? ' <span style="font-size:0.7rem; color:#2ecc71;">(我)</span>' : ''}</td>
+        <td style="padding:7px 8px; border-bottom:1px solid #330b0b; color:#ffd32a; font-weight:bold;">${item.credits}</td>
+        <td style="padding:7px 8px; border-bottom:1px solid #330b0b; color:#e67e22;">${item.maxWin}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  bindEvents() {
+    // GO
+    this.dom.btnGo.addEventListener('click', () => this.startSpin());
+
+    // Betting console buttons
+    BET_CATEGORIES.forEach(cat => {
+      const btn = this.dom.betButtons[cat.key];
+      if (btn) {
+        btn.addEventListener('click', () => this.addBet(cat.key, 1));
+      }
+    });
+
+    // Control bar
+    this.dom.btnAllPlus.addEventListener('click', () => this.addBetAll());
+    this.dom.btnClear.addEventListener('click', () => this.clearBets());
+    this.dom.btnMax.addEventListener('click', () => this.maxBet());
+
+    // Gamble buttons
+    this.dom.btnGambleSmall.addEventListener('click', () => this.gamble('SMALL'));
+    this.dom.btnGambleBig.addEventListener('click', () => this.gamble('BIG'));
+
+    // Daily Claim Button
+    this.dom.btnDailyClaim.addEventListener('click', () => {
+      const res = this.userMgr.claimDaily();
+      if (res.ok) {
+        this.sound.play('coin');
+        this.updateUserUI();
+        this.updateUI();
+        this.setMessage(res.msg);
+        alert(res.msg);
+      } else {
+        this.setMessage(res.msg);
+      }
+    });
+
+    // Leaderboard Button
+    this.dom.btnLeaderboard.addEventListener('click', () => {
+      this.sound.play('click');
+      this.renderLeaderboard();
+      this.dom.leaderboardModal.classList.add('open');
+    });
+    document.getElementById('btnCloseLeaderboard').addEventListener('click', () => {
+      this.dom.leaderboardModal.classList.remove('open');
+    });
+
+    // Auth Button
+    let authMode = 'login';
+    const setAuthMode = (mode) => {
+      authMode = mode;
+      this.dom.authTabLogin.classList.toggle('active', mode === 'login');
+      this.dom.authTabRegister.classList.toggle('active', mode === 'register');
+      this.dom.authTitle.textContent = mode === 'login' ? '玩家登录 / 切换' : '注册新玩家账号';
+      this.dom.btnAuthSubmit.textContent = mode === 'login' ? '登录并开玩' : '立即注册 (送100块)';
+      this.dom.authMsg.textContent = mode === 'login' ? '' : '🎉 新账号默认赠送 100 初始积分！';
+    };
+
+    this.dom.btnUserAuth.addEventListener('click', () => {
+      this.sound.play('click');
+      setAuthMode('login');
+      this.dom.authUsername.value = '';
+      this.dom.authPassword.value = '';
+      this.dom.authModal.classList.add('open');
+    });
+    this.dom.authTabLogin.addEventListener('click', () => setAuthMode('login'));
+    this.dom.authTabRegister.addEventListener('click', () => setAuthMode('register'));
+    document.getElementById('btnCloseAuth').addEventListener('click', () => {
+      this.dom.authModal.classList.remove('open');
+    });
+
+    this.dom.btnAuthSubmit.addEventListener('click', () => {
+      const uname = this.dom.authUsername.value.trim();
+      const pwd = this.dom.authPassword.value.trim();
+      if (!uname) {
+        this.dom.authMsg.textContent = '⚠️ 请输入玩家名字！';
+        return;
+      }
+      if (authMode === 'register') {
+        const res = this.userMgr.register(uname, pwd);
+        if (res.ok) {
+          this.sound.play('coin');
+          this.updateUserUI();
+          this.updateUI();
+          this.setMessage(res.msg);
+          this.dom.authModal.classList.remove('open');
+          alert(res.msg);
+        } else {
+          this.dom.authMsg.textContent = '⚠️ ' + res.msg;
+        }
+      } else {
+        const res = this.userMgr.login(uname, pwd);
+        if (res.ok) {
+          this.sound.play('click');
+          this.updateUserUI();
+          this.updateUI();
+          this.setMessage(res.msg);
+          this.dom.authModal.classList.remove('open');
+        } else {
+          this.dom.authMsg.textContent = '⚠️ ' + res.msg;
+        }
+      }
+    });
+
+    // Top buttons
+    this.soundClicks = 0;
+    this.soundClickTimeout = null;
+
+    this.dom.btnSound.addEventListener('click', () => {
+      const on = this.sound.toggle();
+      this.dom.btnSound.textContent = on ? '🔊' : '🔇';
+
+      // 隐藏彩蛋：连续点击音量键 20 次开启/隐藏测试模式
+      this.soundClicks = (this.soundClicks || 0) + 1;
+      clearTimeout(this.soundClickTimeout);
+      this.soundClickTimeout = setTimeout(() => {
+        this.soundClicks = 0;
+      }, 5000);
+
+      if (this.soundClicks >= 20) {
+        this.soundClicks = 0;
+        this.testMode = !this.testMode;
+        if (this.dom.btnTest) {
+          this.dom.btnTest.style.display = this.testMode ? 'inline-block' : 'none';
+          this.dom.btnTest.classList.toggle('active', this.testMode);
+        }
+        if (this.dom.testPanel) {
+          this.dom.testPanel.classList.toggle('show', this.testMode);
+        }
+
+        if (this.testMode) {
+          this.sound.play('win');
+          this.setMessage('🛠️ 恭喜！隐藏开发者调试模式已解锁开启！');
+          alert('🛠️ 恭喜！连续点击音量键 20 次触发彩蛋：开发者测试模式已开启！');
+        } else {
+          this.setMessage('🛠️ 开发者调试模式已重新隐藏。');
+          alert('🛠️ 开发者测试模式已关闭并重新隐藏！');
+        }
+      }
+    });
+
+    this.dom.btnRules.addEventListener('click', () => {
+      this.sound.play('click');
+      this.dom.rulesModal.classList.add('open');
+    });
+    document.getElementById('btnCloseRules').addEventListener('click', () => {
+      this.dom.rulesModal.classList.remove('open');
+    });
+
+    this.dom.btnHistory.addEventListener('click', () => {
+      this.sound.play('click');
+      this.renderHistory();
+      this.dom.historyModal.classList.add('open');
+    });
+    document.getElementById('btnCloseHistory').addEventListener('click', () => {
+      this.dom.historyModal.classList.remove('open');
+    });
+
+    [this.dom.rulesModal, this.dom.historyModal, this.dom.leaderboardModal, this.dom.authModal].forEach(m => {
+      if (m) {
+        m.addEventListener('click', (e) => {
+          if (e.target === m) m.classList.remove('open');
+        });
+      }
+    });
+
+    this.dom.btnTest.addEventListener('click', () => {
+      this.testMode = !this.testMode;
+      this.dom.testPanel.classList.toggle('show', this.testMode);
+      this.dom.btnTest.classList.toggle('active', this.testMode);
+    });
+
+    // Test actions
+    document.getElementById('testBar120').addEventListener('click', () => {
+      this.forcedTarget = 3; // BAR x120
+      this.setMessage('🛠️ [调试] 强制锁定目标：BAR x120！点击 GO 触发！');
+    });
+    document.getElementById('testSeven40').addEventListener('click', () => {
+      this.forcedTarget = 15; // 77 x40
+      this.setMessage('🛠️ [调试] 强制锁定目标：Lucky 77 x40！点击 GO 触发！');
+    });
+    document.getElementById('testTrainSingle').addEventListener('click', () => {
+      this.forcedTarget = 9; // Cell 9 Single Meteor
+      this.setMessage('🛠️ [调试] 强制锁定：单星流星火车 (中1个方格)！点击 GO 触发！');
+    });
+    document.getElementById('testTrainTriple').addEventListener('click', () => {
+      this.forcedTarget = 21; // Cell 21 Triple Meteor
+      this.setMessage('🛠️ [调试] 强制锁定：三星流星火车 (中3个方格)！点击 GO 触发！');
+    });
+    document.getElementById('testApple5').addEventListener('click', () => {
+      this.forcedTarget = 5; // Apple x5
+      this.setMessage('🛠️ [调试] 强制锁定目标：苹果 x5！点击 GO 触发！');
+    });
+    document.getElementById('testAdd1000').addEventListener('click', () => {
+      this.credits += 1000;
+      this.updateUI();
+      this.setMessage('🛠️ [调试] 注入 1000 虚拟积分！');
+    });
+    document.getElementById('testResetAll').addEventListener('click', () => {
+      localStorage.removeItem(CONFIG.STORAGE_USERS_KEY);
+      localStorage.removeItem(CONFIG.STORAGE_SESSION_KEY);
+      localStorage.removeItem('retro_fruit_history');
+      this.userMgr.load();
+      this.bonusWin = 0;
+      this.bets = { bar:0, seven:0, star:0, watermelon:0, bell:0, plum:0, orange:0, apple:0 };
+      this.history = [];
+      this.updateUserUI();
+      this.updateUI();
+      this.setMessage('🛠️ [调试] 已重置为初始状态！');
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        this.startSpin();
+      }
+    });
+  }
+}
+
+if (typeof window !== 'undefined') {
+  window.ClassicFruitGame = ClassicFruitGame;
+  window.UserManager = UserManager;
+  window.CELLS_DEF = CELLS_DEF;
+  window.CELL_WEIGHTS = CELL_WEIGHTS;
+  window.BET_CATEGORIES = BET_CATEGORIES;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  window.fruitGame = new ClassicFruitGame();
+});
+
+  </script>
+</body>
+</html>
